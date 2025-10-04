@@ -4078,7 +4078,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 		end
 		
 		function Tab:SetImg(img)
-			img.Image = img
+			ImageLabel.Image = img
 		end
 
 		function Tab:CreateButton(ButtonSettings)
