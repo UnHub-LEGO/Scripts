@@ -1,4 +1,3 @@
-
 if debugX then
 	warn('Initialising Rayfield')
 end
@@ -16,10 +15,9 @@ local function loadWithTimeout(url: string, timeout: number?): ...any
 
 	local requestThread = task.spawn(function()
 		local fetchSuccess, fetchResult = pcall(game.HttpGet, game, url) -- game:HttpGet(url)
-		-- If the request fails the content can be empty, even if fetchSuccess is true
 		if not fetchSuccess or #fetchResult == 0 then
 			if #fetchResult == 0 then
-				fetchResult = "Empty response" -- Set the error message
+				fetchResult = "Empty response"
 			end
 			success, result = false, fetchResult
 			requestCompleted = true
@@ -66,6 +64,8 @@ local settingsTable = {
 	General = {
 		-- if needs be in order just make getSetting(name)
 		rayfieldOpen = {Type = 'bind', Value = 'K', Name = 'Rayfield Keybind'},
+		-- buildwarnings
+		-- rayfieldprompts
 
 	},
 	System = {
@@ -73,6 +73,8 @@ local settingsTable = {
 	}
 }
 
+-- Settings that have been overridden by the developer. These will not be saved to the user's configuration file
+-- Overridden settings always take precedence over settings in the configuration file, and are cleared if the user changes the setting in the UI
 local overriddenSettings: { [string]: any } = {} -- For example, overriddenSettings["System.rayfieldOpen"] = "J"
 local function overrideSetting(category: string, name: string, value: any)
 	overriddenSettings[`{category}.{name}`] = value
@@ -173,6 +175,30 @@ loadSettings()
 if debugX then
 	warn('Settings Loaded')
 end
+
+--if not cachedSettings or not cachedSettings.System or not cachedSettings.System.usageAnalytics then
+--	local fileFunctionsAvailable = isfile and writefile and readfile
+
+--	if not fileFunctionsAvailable and not useStudio then
+--		warn('Rayfield Interface Suite | Sirius Analytics:\n\n\nAs you don\'t have file functionality with your executor, we are unable to save whether you want to opt in or out to analytics.\nIf you do not want to take part in anonymised usage statistics, let us know in our Discord at sirius.menu/discord and we will manually opt you out.')
+--		analytics = true	
+--	else
+--		prompt.create(
+--			'Help us improve',
+--	            [[Would you like to allow Sirius to collect usage statistics?
+
+--<font transparency='0.4'>No data is linked to you or your personal activity.</font>]],
+--			'Continue',
+--			'Cancel',
+--			function(result)
+--				settingsTable.System.usageAnalytics.Value = result
+--				analytics = result
+--			end
+--		)
+--	end
+
+--	repeat task.wait() until analytics ~= nil
+--end
 
 if not requestsDisabled then
 	if debugX then
@@ -627,7 +653,16 @@ until buildAttempts >= 2
 
 Rayfield.Enabled = false
 
-Rayfield.Parent = CoreGui
+if gethui then
+	Rayfield.Parent = gethui()
+elseif syn and syn.protect_gui then 
+	syn.protect_gui(Rayfield)
+	Rayfield.Parent = CoreGui
+elseif not useStudio and CoreGui:FindFirstChild("RobloxGui") then
+	Rayfield.Parent = CoreGui:FindFirstChild("RobloxGui")
+elseif not useStudio then
+	Rayfield.Parent = CoreGui
+end
 
 
 local minSize = Vector2.new(1024, 768)
@@ -1691,7 +1726,16 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 			KeyUI.Enabled = true
 
-			KeyUI.Parent = CoreGui
+			if gethui then
+				KeyUI.Parent = gethui()
+			elseif syn and syn.protect_gui then 
+				syn.protect_gui(KeyUI)
+				KeyUI.Parent = CoreGui
+			elseif not useStudio and CoreGui:FindFirstChild("RobloxGui") then
+				KeyUI.Parent = CoreGui:FindFirstChild("RobloxGui")
+			elseif not useStudio then
+				KeyUI.Parent = CoreGui
+			end
 
 			if gethui then
 				for _, Interface in ipairs(gethui():GetChildren()) do
@@ -3274,6 +3318,15 @@ function RayfieldLibrary:CreateWindow(Settings)
 			function ToggleSettings:Get()
 				return ToggleSettings.CurrentValue
 			end
+			
+			function ToggleSettings:GetToggle()
+				return Toggle
+			end
+			
+			function ToggleSettings:Destroy()
+				Toggle:Destroy()
+			end
+			
 			function ToggleSettings:Set(NewToggleValue)
 				if NewToggleValue == true then
 					ToggleSettings.CurrentValue = true
@@ -3783,7 +3836,8 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		return Tab
 	end
-	
+
+
 	function Window:CreateChatTab(Name, Image, Ext, TextHolder, img, ButtonSettings)
 		local SDone = false
 		local connections = {}
@@ -3821,7 +3875,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 		
 		local TabPage = Instance.new("Frame")
 		TabPage.Name = "Frame"
-		TabPage.Parent = game:GetService("CoreGui").UnHub.Main.Elements
+		TabPage.Parent = Rayfield.Main.Elements
 		TabPage.Position = UDim2.new(0.5, 0, 0.5, 0)
 		TabPage.Size = UDim2.new(1, -25, 1, 0)
 		TabPage.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -3891,12 +3945,14 @@ function RayfieldLibrary:CreateWindow(Settings)
 		ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
 		ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
 		ImageLabel.BackgroundTransparency = 1
+		ImageLabel.ZIndex = 10
+		ImageLabel.ScaleType = Enum.ScaleType.Fit
 		ImageLabel.Image = img
 		ImageLabel.Parent = Interact
 		local ScrollingFrame = Instance.new("ScrollingFrame", TabPage)
 		ScrollingFrame.ScrollBarImageTransparency = 1
 		ScrollingFrame.ScrollBarThickness = 0
-		ScrollingFrame.AutomaticSize = Enum.AutomaticSize.X
+		ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 		ScrollingFrame.Position = UDim2.new(0.5, 0, 0.3799999952316284, 0)
 		ScrollingFrame.Size = UDim2.new(1, 0, 0.75, 0)
 		ScrollingFrame.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -4687,6 +4743,10 @@ function RayfieldLibrary:CreateWindow(Settings)
 				Paragraph.BackgroundColor3 = SelectedTheme.SecondaryElementBackground
 				Paragraph.UIStroke.Color = SelectedTheme.SecondaryElementStroke
 			end)
+			
+			function ParagraphValue:GetDestroy()
+				Paragraph:Destroy()
+			end
 
 			return ParagraphValue
 		end
@@ -5318,6 +5378,14 @@ function RayfieldLibrary:CreateWindow(Settings)
 			function ToggleSettings:Get()
 				return ToggleSettings.CurrentValue
 			end
+			
+			function ToggleSettings:GetToggle()
+				return Toggle
+			end
+			
+			function ToggleSettings:Destroy()
+				Toggle:Destroy()
+			end
 			function ToggleSettings:Set(NewToggleValue)
 				if NewToggleValue == true then
 					ToggleSettings.CurrentValue = true
@@ -5518,7 +5586,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 							end
 						end
 					else
-						TweenService:Create(Slider.Main.Progress, TweenInfo.new(0.3, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, Location - Slider.Main.AbsolutePosition.X > 5 and Location - Slider.Main.AbsolutePosition.X or 5, 1, 0)}):Play()
+						TweenService:Create(Slider.Main.Progress, TweenInfo.new(0.1, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, Location - Slider.Main.AbsolutePosition.X > 5 and Location - Slider.Main.AbsolutePosition.X or 5, 1, 0)}):Play()
 						Loop:Disconnect()
 					end
 				end)
@@ -5637,7 +5705,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 		return Tab
 	end
-	
+
 	Elements.Visible = true
 
 
