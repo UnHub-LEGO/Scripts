@@ -17,7 +17,7 @@ local function loadWithTimeout(url: string, timeout: number?): ...any
 		local fetchSuccess, fetchResult = pcall(game.HttpGet, game, url) -- game:HttpGet(url)
 		if not fetchSuccess or #fetchResult == 0 then
 			if #fetchResult == 0 then
-				fetchResult = "Empty response" -- Set the error message
+				fetchResult = "Empty response"
 			end
 			success, result = false, fetchResult
 			requestCompleted = true
@@ -3940,13 +3940,13 @@ function RayfieldLibrary:CreateWindow(Settings)
 		Interact.TextColor3 = Color3.new(0, 0, 0)
 		Interact.TextSize = 14
 		Interact.Font = Enum.Font.SourceSans
-		local img = Instance.new("ImageLabel")
-		img.Size = UDim2.new(0.9, 0, 0.9, 0)
-		img.AnchorPoint = Vector2.new(0.5, 0.5)
-		img.Position = UDim2.new(0.5, 0, 0.5, 0)
-		img.BackgroundTransparency = 1
-		img.Image = img
-		img.Parent = Interact
+		local ImageLabel = Instance.new("ImageLabel")
+		ImageLabel.Size = UDim2.new(0.9, 0, 0.9, 0)
+		ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+		ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+		ImageLabel.BackgroundTransparency = 1
+		ImageLabel.Image = img
+		ImageLabel.Parent = Interact
 		local ScrollingFrame = Instance.new("ScrollingFrame", TabPage)
 		ScrollingFrame.ScrollBarImageTransparency = 1
 		ScrollingFrame.ScrollBarThickness = 0
