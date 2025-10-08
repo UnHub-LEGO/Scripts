@@ -2279,6 +2279,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 			ScrollingFrame.ScrollBarThickness = 0
 			ScrollingFrame.ScrollBarImageTransparency = 1
 			ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+			ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 		
 		    local TextBox = Instance.new("TextBox")
 		    TextBox.Name = "TextBox"
@@ -2290,12 +2291,16 @@ function RayfieldLibrary:CreateWindow(Settings)
 		    TextBox.Text = TextEditorSettings.CurrentValue
 		    TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 		    TextBox.TextSize = 14
-		    TextBox.BackgroundColor3 = Color3.new(0.11, 0.11, 0.11)
-		    TextBox.Font = Enum.Font.GothamMedium
+		    TextBox.BackgroundColor3 = Color3.new(0.137, 0.137, 0.137)
+		    TextBox.Font = Enum.Font.Code
 		    TextBox.ClearTextOnFocus = false
 			TextBox.MultiLine = true
 			TextBox.TextWrapped = false
 			TextBox.TextYAlignment = Enum.TextYAlignment.Top
+			
+			local UICorner = Instance.new("UICorner")
+		    UICorner.CornerRadius = UDim.new(0, 9)
+		    UICorner.Parent = TextBox
 		
 		    TweenService:Create(TextEditor, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 		    TweenService:Create(UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
