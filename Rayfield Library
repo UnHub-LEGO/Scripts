@@ -4822,7 +4822,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 		-- Paragraph
 		function Tab:CreateParagraph(ParagraphSettings)
 			local ParagraphValue = {}
-			local Click1 = false
+			local debounce = false
 
 			local Paragraph = Elements.Template.Paragraph:Clone()
 			Paragraph.Title.Text = ParagraphSettings.Title
@@ -4854,13 +4854,13 @@ function RayfieldLibrary:CreateWindow(Settings)
 			end)
 			
 			Paragraph.MouseButton1Click:Connect(function()
-				if Click1 then
+				if debounce then return end
+				debounce = true
+				if ParagraphSettings.Callback then
 					pcall(ParagraphSettings.Callback)
-				else
-					Click1 = true
 				end
 				task.wait(0.5)
-				Click1 = false
+				debounce = false
 			end)
 			
 			function ParagraphValue:GetDestroy()
