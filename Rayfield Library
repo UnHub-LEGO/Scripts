@@ -4163,6 +4163,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 		    if rayfieldDestroyed then return end
 		
 		    if not Success then
+		    	print(Response)
 		        TweenService:Create(Button, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
 		        TweenService:Create(Button.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
 		        task.wait(0.5)
