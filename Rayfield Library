@@ -4841,13 +4841,9 @@ function RayfieldLibrary:CreateWindow(Settings)
 			Interact.Position = UDim2.new(0.5, 0, 0.5, 0)
 			Interact.Size = UDim2.new(1, 0, 1, 0)
 			Interact.AnchorPoint = Vector2.new(0.5, 0.5)
-			Interact.BackgroundColor3 = Color3.new(1, 1, 1)
 			Interact.BackgroundTransparency = 1
-			Interact.ZIndex = 9
+			Interact.ZIndex = 15
 			Interact.Text = [[]]
-			Interact.TextColor3 = Color3.new(0, 0, 0)
-			Interact.TextSize = 14
-			Interact.Font = Enum.Font.SourceSans
 
 			Paragraph.BackgroundColor3 = SelectedTheme.SecondaryElementBackground
 			Paragraph.UIStroke.Color = SelectedTheme.SecondaryElementStroke
@@ -4868,13 +4864,15 @@ function RayfieldLibrary:CreateWindow(Settings)
 			end)
 			
 			Paragraph.Interact.MouseButton1Click:Connect(function()
-				if debounce then return end
-				debounce = true
-				if ParagraphSettings.Callback then
-					pcall(ParagraphSettings.Callback)
+				if debounce then
+					if ParagraphSettings.Callback then
+						pcall(ParagraphSettings.Callback)
+					end
+				else
+					debounce = true
+					task.wait(0.5)
+					debounce = false
 				end
-				task.wait(0.5)
-				debounce = false
 			end)
 			
 			function ParagraphValue:GetDestroy()
