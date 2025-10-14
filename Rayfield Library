@@ -4822,6 +4822,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 		-- Paragraph
 		function Tab:CreateParagraph(ParagraphSettings)
 			local ParagraphValue = {}
+			local Click1 = false
 
 			local Paragraph = Elements.Template.Paragraph:Clone()
 			Paragraph.Title.Text = ParagraphSettings.Title
@@ -4850,6 +4851,16 @@ function RayfieldLibrary:CreateWindow(Settings)
 			Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
 				Paragraph.BackgroundColor3 = SelectedTheme.SecondaryElementBackground
 				Paragraph.UIStroke.Color = SelectedTheme.SecondaryElementStroke
+			end)
+			
+			Paragraph.MouseButton1Click:Connect(function()
+				if Click1 then
+					pcall(ParagraphSettings.Callback)
+				else
+					Click1 = true
+				end
+				task.wait(0.5)
+				Click1 = false
 			end)
 			
 			function ParagraphValue:GetDestroy()
