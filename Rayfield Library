@@ -4699,6 +4699,10 @@ function RayfieldLibrary:CreateWindow(Settings)
 			function DividerValue:Set(Value)
 				Divider.Visible = Value
 			end
+			
+			function DividerValue:Destroy()
+				Divider:Destroy()
+			end
 
 			return DividerValue
 		end
