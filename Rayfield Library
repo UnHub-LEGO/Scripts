@@ -4811,6 +4811,10 @@ function RayfieldLibrary:CreateWindow(Settings)
 			Paragraph.Content.Text = ParagraphSettings.Content
 			Paragraph.Visible = true
 			Paragraph.Parent = TabPage.ScrollingFrame
+			
+			if ParagraphSettings.RichText then 
+				Paragraph.Content.RichText = ParagraphSettings.RichText
+			end
 
 			Paragraph.BackgroundTransparency = 1
 			Paragraph.UIStroke.Transparency = 1
@@ -4869,31 +4873,35 @@ function RayfieldLibrary:CreateWindow(Settings)
 			Paragraph2.Title:Destroy()
 			Paragraph2.Content.Text = ParagraphSettings.Content
 			Paragraph2.Visible = true
-			Paragraph2.Parent = Paragraph
+			Paragraph2.Parent = Paragraph1
 			Paragraph2.Position = UDim2.new(0.3, 0, 0, 0)
 			Paragraph2.Size = UDim2.new(0.7, 0, 0, 0)
 
-			Paragraph.BackgroundTransparency = 1
-			Paragraph.UIStroke.Transparency = 1
-			Paragraph.Content.TextTransparency = 1
+			Paragraph2.BackgroundTransparency = 1
+			Paragraph2.UIStroke.Transparency = 1
+			Paragraph2.Content.TextTransparency = 1
+			
+			if ParagraphSettings.RichText then 
+				Paragraph2.Content.RichText = ParagraphSettings.RichText
+			end
 
-			Paragraph.BackgroundColor3 = SelectedTheme.SecondaryElementBackground
-			Paragraph.UIStroke.Color = SelectedTheme.SecondaryElementStroke
+			Paragraph2.BackgroundColor3 = SelectedTheme.SecondaryElementBackground
+			Paragraph2.UIStroke.Color = SelectedTheme.SecondaryElementStroke
 
-			TweenService:Create(Paragraph, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
-			TweenService:Create(Paragraph.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
-			TweenService:Create(Paragraph.Content, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
+			TweenService:Create(Paragraph2, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+			TweenService:Create(Paragraph2.UIStroke, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
+			TweenService:Create(Paragraph2.Content, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()	
 
 			function ParagraphValue:Set(NewParagraphSettings)
-				Paragraph.Content.Text = NewParagraphSettings.Content
+				Paragraph2.Content.Text = NewParagraphSettings.Content
 			end
 
 			Rayfield.Main:GetPropertyChangedSignal('BackgroundColor3'):Connect(function()
-				Paragraph.BackgroundColor3 = SelectedTheme.SecondaryElementBackground
-				Paragraph.UIStroke.Color = SelectedTheme.SecondaryElementStroke
+				Paragraph2.BackgroundColor3 = SelectedTheme.SecondaryElementBackground
+				Paragraph2.UIStroke.Color = SelectedTheme.SecondaryElementStroke
 			end)
 			
-			Paragraph.InputBegan:Connect(function(input)
+			Paragraph2.InputBegan:Connect(function(input)
 				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 					if debounce then
 						if ParagraphSettings.Callback then
@@ -4927,6 +4935,10 @@ function RayfieldLibrary:CreateWindow(Settings)
 			Paragraph.BackgroundTransparency = 1
 			Paragraph.UIStroke.Transparency = 1
 			Paragraph.Content.TextTransparency = 1
+			
+			if ParagraphSettings.RichText then 
+				Paragraph.Content.RichText = ParagraphSettings.RichText
+			end
 
 			Paragraph.BackgroundColor3 = SelectedTheme.SecondaryElementBackground
 			Paragraph.UIStroke.Color = SelectedTheme.SecondaryElementStroke
