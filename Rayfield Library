@@ -4694,7 +4694,6 @@ function RayfieldLibrary:CreateWindow(Settings)
 			Divider.Parent = TabPage.ScrollingFrame
 
 			Divider.Divider.BackgroundTransparency = 1
-			TweenService:Create(Divider.Divider, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.85}):Play()
 
 			function DividerValue:Set(Value)
 				Divider.Visible = Value
