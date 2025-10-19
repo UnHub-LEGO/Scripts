@@ -4941,10 +4941,6 @@ function RayfieldLibrary:CreateWindow(Settings)
 			Paragraph.BackgroundTransparency = 1
 			Paragraph.UIStroke.Transparency = 1
 			Paragraph.Content.TextTransparency = 1
-			
-			if ParagraphSettings.RichText then 
-				Paragraph.Content.RichText = ParagraphSettings.RichText
-			end
 
 			Paragraph.BackgroundColor3 = SelectedTheme.SecondaryElementBackground
 			Paragraph.UIStroke.Color = SelectedTheme.SecondaryElementStroke
@@ -5022,6 +5018,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 				Content.LayoutOrder = 2
 				Content.AutomaticSize = Enum.AutomaticSize.Y
 				Content.TextWrapped = true
+				Content.RichText = true
 				Content.TextXAlignment = Enum.TextXAlignment.Left
 				Content.TextYAlignment = Enum.TextYAlignment.Top
 				local UICorner = Instance.new("UICorner")
@@ -5079,6 +5076,10 @@ function RayfieldLibrary:CreateWindow(Settings)
 				UIListLayout.FillDirection = Enum.FillDirection.Vertical
 				UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 				UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+				
+				TextButton.MouseButton1Click:Connect(function()
+					setclipboard(Content.Text)
+				end)
 			end
 
 			return ParagraphValue
