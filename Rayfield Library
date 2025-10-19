@@ -4866,6 +4866,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 			local Paragraph1 = Elements.Template.Paragraph:Clone()
 			Paragraph1.Parent = TabPage.ScrollingFrame
+			Paragraph1.BackgroundTransparency = 1
 			for i, v in pairs(Paragraph1:GetChildren()) do
 				v:Destroy()
 			end
@@ -4873,6 +4874,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 			local Paragraph2 = Elements.Template.Paragraph:Clone()
 			Paragraph2.Title:Destroy()
 			Paragraph2.Content.Text = ParagraphSettings.Content
+			Paragraph2.Content.Size = UDim2.new(1, -10, 0, 0)
 			Paragraph2.Visible = true
 			Paragraph2.Parent = Paragraph1
 			Paragraph2.Position = UDim2.new(0.3, 0, 0, 0)
