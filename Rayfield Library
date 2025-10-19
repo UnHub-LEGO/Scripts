@@ -4865,6 +4865,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 			local debounce = false
 
 			local Paragraph1 = Elements.Template.Paragraph:Clone()
+			Paragraph1.Parent = TabPage.ScrollingFrame
 			for i, v in pairs(Paragraph1:GetChildren()) do
 				v:Destroy()
 			end
