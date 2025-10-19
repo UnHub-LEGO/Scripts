@@ -653,8 +653,16 @@ until buildAttempts >= 2
 
 Rayfield.Enabled = false
 
-
-Rayfield.Parent = CoreGui
+if gethui then
+	Rayfield.Parent = gethui()
+elseif syn and syn.protect_gui then 
+	syn.protect_gui(Rayfield)
+	Rayfield.Parent = CoreGui
+elseif not useStudio and CoreGui:FindFirstChild("RobloxGui") then
+	Rayfield.Parent = CoreGui:FindFirstChild("RobloxGui")
+elseif not useStudio then
+	Rayfield.Parent = CoreGui
+end
 
 
 local minSize = Vector2.new(1024, 768)
@@ -1718,12 +1726,30 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 			KeyUI.Enabled = true
 
-			KeyUI.Parent = CoreGui
+			if gethui then
+				KeyUI.Parent = gethui()
+			elseif syn and syn.protect_gui then 
+				syn.protect_gui(KeyUI)
+				KeyUI.Parent = CoreGui
+			elseif not useStudio and CoreGui:FindFirstChild("RobloxGui") then
+				KeyUI.Parent = CoreGui:FindFirstChild("RobloxGui")
+			elseif not useStudio then
+				KeyUI.Parent = CoreGui
+			end
 
-			for _, Interface in ipairs(CoreGui:GetChildren()) do
-				if Interface.Name == KeyUI.Name and Interface ~= KeyUI then
-					Interface.Enabled = false
-					Interface.Name = "KeyUI-Old"
+			if gethui then
+				for _, Interface in ipairs(gethui():GetChildren()) do
+					if Interface.Name == KeyUI.Name and Interface ~= KeyUI then
+						Interface.Enabled = false
+						Interface.Name = "KeyUI-Old"
+					end
+				end
+			elseif not useStudio then
+				for _, Interface in ipairs(CoreGui:GetChildren()) do
+					if Interface.Name == KeyUI.Name and Interface ~= KeyUI then
+						Interface.Enabled = false
+						Interface.Name = "KeyUI-Old"
+					end
 				end
 			end
 
@@ -4039,7 +4065,6 @@ function RayfieldLibrary:CreateWindow(Settings)
 		local ScrollingFrame = Instance.new("ScrollingFrame", TabPage)
 		ScrollingFrame.ScrollBarImageTransparency = 1
 		ScrollingFrame.ScrollBarThickness = 0
-		ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 		ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 		ScrollingFrame.Position = UDim2.new(0.5, 0, 0.3799999952316284, 0)
 		ScrollingFrame.Size = UDim2.new(1, 0, 0.75, 0)
@@ -4694,13 +4719,10 @@ function RayfieldLibrary:CreateWindow(Settings)
 			Divider.Parent = TabPage.ScrollingFrame
 
 			Divider.Divider.BackgroundTransparency = 1
+			TweenService:Create(Divider.Divider, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.85}):Play()
 
 			function DividerValue:Set(Value)
 				Divider.Visible = Value
-			end
-			
-			function DividerValue:Destroy()
-				Divider:Destroy()
 			end
 
 			return DividerValue
@@ -4811,10 +4833,6 @@ function RayfieldLibrary:CreateWindow(Settings)
 			Paragraph.Content.Text = ParagraphSettings.Content
 			Paragraph.Visible = true
 			Paragraph.Parent = TabPage.ScrollingFrame
-			
-			if ParagraphSettings.RichText then 
-				Paragraph.Content.RichText = ParagraphSettings.RichText
-			end
 
 			Paragraph.BackgroundTransparency = 1
 			Paragraph.UIStroke.Transparency = 1
@@ -4883,10 +4901,6 @@ function RayfieldLibrary:CreateWindow(Settings)
 			Paragraph2.BackgroundTransparency = 1
 			Paragraph2.UIStroke.Transparency = 1
 			Paragraph2.Content.TextTransparency = 1
-			
-			if ParagraphSettings.RichText then 
-				Paragraph2.Content.RichText = ParagraphSettings.RichText
-			end
 
 			Paragraph2.BackgroundColor3 = SelectedTheme.SecondaryElementBackground
 			Paragraph2.UIStroke.Color = SelectedTheme.SecondaryElementStroke
@@ -4919,7 +4933,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 			end)
 			
 			function ParagraphValue:GetDestroy()
-				Paragraph:Destroy()
+				Paragraph1:Destroy()
 			end
 
 			return ParagraphValue
