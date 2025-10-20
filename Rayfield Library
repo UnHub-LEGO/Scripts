@@ -4137,7 +4137,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 		end)
 		
 		table.insert(connections, Button.Interact.MouseButton1Click:Connect(function()
-		    local Success, Response = pcall(ButtonSettings.Callback)
+		    local Success, Response = pcall(ButtonSettings.Callback1)
 		    if rayfieldDestroyed then return end
 		
 		    if not Success then
