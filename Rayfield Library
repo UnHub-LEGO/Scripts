@@ -3070,11 +3070,11 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 
 						local Success, Response = pcall(function()
-							if not MultipleOptions then
-								DropdownSettings.Callback(DropdownSettings.CurrentOption[1])
-							else
-								DropdownSettings.Callback(DropdownSettings.CurrentOption)
-							end
+							if not DropdownSettings.MultipleOptions then
+							DropdownSettings.Callback(DropdownSettings.CurrentOption[1])
+						else
+							DropdownSettings.Callback(DropdownSettings.CurrentOption)
+						end
 						end)
 
 						if not Success then
@@ -3163,7 +3163,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 
 				local Success, Response = pcall(function()
-					if not MultipleOptions then
+					if not DropdownSettings.MultipleOptions then
 						DropdownSettings.Callback(DropdownSettings.CurrentOption[1])
 					else
 						DropdownSettings.Callback(DropdownSettings.CurrentOption)
