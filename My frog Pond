@@ -10,7 +10,7 @@ local Window = Rayfield:CreateWindow({
    ToggleUIKeybind = "H",
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = "19748292774",
+      FolderName = "My Frog Pong",
       FileName = "data"
    },
    Discord = {
@@ -35,7 +35,8 @@ local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local plr = game.Players.LocalPlayer
 local Players = game.Players
-local AutoBuy1, AutoPickUp, AutoBuy2, AutoBuy3, RunAntiAfk, BuyAll1, BuyAll2, BuyAll3, AutoPlaceAllTadpole, AutoGiftSanta, AutoFrameEvent, Run = false, false, false, false, nil, false, false, false, false, false, nil
+local AllSave = {}
+local AutoBuy1, AutoPickUp, AutoBuy2, AutoBuy3, RunAntiAfk, BuyAll1, BuyAll2, BuyAll3, AutoPlaceAllTadpole, AutoGiftSanta, AutoFrameEvent, Run, BuyAllE = false, false, false, false, nil, false, false, false, false, false, nil, false
 local ST = Instance.new("ScreenGui")
 local T = Instance.new("ImageButton")
 local Corner = Instance.new("UICorner")
@@ -88,6 +89,27 @@ local function GetFrog()
 	end
 end
 
+local Hollyhop = {}
+local HollyhopList = {}
+local ShopHollyhop = {}
+local Hollyhop2 = {}
+local HollyhopList2 = {}
+local ShopHollyhop2 = {}
+
+for i, v in pairs(plr.PlayerGui["Hollyhop Shop_Shop"].MainContainer.Container.Frame.Body.Items:GetChildren()) do
+	if v:IsA("Frame") and v.Name:find(" Tadpole") then
+		table.insert(Hollyhop, {v.Name, v.Name:gsub(" Tadpole", " Frog"), tonumber(NumberCoverter(v.Right.PriceSection.Button.Amount.Text)), v})
+	elseif v:IsA("Frame") and not v.Name:find(" Tadpole") and v.Name ~= "Northstar Caller" then
+	    table.insert(Hollyhop2, {v.Name, tonumber(NumberCoverter(v.Right.PriceSection.Button.Amount.Text)), v})
+	end
+end
+for i, v in pairs(Hollyhop) do
+	table.insert(HollyhopList, v[1])
+end
+for i, v in pairs(Hollyhop2) do
+	table.insert(HollyhopList2, v[1])
+end
+
 local Frog = {}
 local FrogList = {}
 local ShopFrog = {}
@@ -134,7 +156,7 @@ local EntitiesCount = Main:CreateLabel("Entities: "..GetFrog(), 11537490966)
 local RibbitCount = Main:CreateLabel("Ribbit: "..plr.leaderstats.Ribbles:GetAttribute("RawValue"), 11537490966)
 Main:CreateLabel("Server: "..game.JobId, 9692125126)
 
-Main:CreateToggle({Name = "Anti AFK Bypass", CurrentValue = false, Flag = "Toggle1", Callback = function(Value)
+AllSave.AntiAFKBypassT = Main:CreateToggle({Name = "Anti AFK Bypass", CurrentValue = false, Flag = "AntiAFKBypassT", Callback = function(Value)
     local vu = game:GetService("VirtualUser")
     if Value then
     	RunAntiAfk = game:GetService("Players").LocalPlayer.Idled:connect(function()
@@ -179,15 +201,15 @@ end})
 local Farm = Window:CreateTab("Farm", 13060262529)
 Farm:CreateSection("Farm")
 
-Farm:CreateToggle({Name = "Auto Sell All", CurrentValue = false, Flag = "Auto Sell All", Callback = function(Value)
+AllSave.AutoSellAllT = Farm:CreateToggle({Name = "Auto Sell All", CurrentValue = false, Flag = "AutoSellAllT", Callback = function(Value)
     AutoSell = Value
 end})
 
-Farm:CreateToggle({Name = "Auto Pick Up All", CurrentValue = false, Flag = "Auto Pick Up All", Callback = function(Value)
+AllSave.AutoPickUpAllT = Farm:CreateToggle({Name = "Auto Pick Up All", CurrentValue = false, Flag = "AutoPickUpAllT", Callback = function(Value)
     AutoPickUp = Value
 end})
 
-Farm:CreateToggle({Name = "Auto Place All Tadpole", CurrentValue = false, Flag = "Auto Place All Tadpole", Callback = function(Value)
+AllSave.AutoPlaceAllTadpoleT = Farm:CreateToggle({Name = "Auto Place All Tadpole", CurrentValue = false, Flag = "AutoPlaceAllTadpoleT", Callback = function(Value)
     AutoPlaceAllTadpole = Value
 end})
 
@@ -223,52 +245,52 @@ Shop:CreateSection("Shop")
 
 Shop:CreateLabel("Tadpoles", 4857721272)
 
-local Tadpoles = Shop:CreateDropdown({Name = "Tadpoles Trove", Options = FrogList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "Dropdown1", Callback = function(Value)
+AllSave.Tadpoles = Shop:CreateDropdown({Name = "Tadpoles Trove", Options = FrogList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "Tadpoles", Callback = function(Value)
     ShopFrog = Value
 end})
 
-Shop:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "Buy All1", Callback = function(Value)
+AllSave.BuyAll1T = Shop:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "BuyAll1T", Callback = function(Value)
     BuyAll1 = Value
 end})
 
-Shop:CreateToggle({Name = "Auto Buy", CurrentValue = false, Flag = "Auto Buy1", Callback = function(Value)
+AllSave.AutoBuy1T = Shop:CreateToggle({Name = "Auto Buy", CurrentValue = false, Flag = "AutoBuy1T", Callback = function(Value)
     AutoBuy1 = Value
 end})
 
 Shop:CreateDivider()
 Shop:CreateLabel("Lilypad", 9681724261)
 
-local LilypadDrop = Shop:CreateDropdown({Name = "Lilypad Lounge", Options = LilypadList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "Dropdown1", Callback = function(Value)
+AllSave.LilypadDrop = Shop:CreateDropdown({Name = "Lilypad Lounge", Options = LilypadList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "LilypadDrop", Callback = function(Value)
     ShopLilypad = Value
 end})
 
-Shop:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "Buy All2", Callback = function(Value)
+AllSave.BuyAll2T = Shop:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "BuyAll2T", Callback = function(Value)
     BuyAll2 = Value
 end})
 
-Shop:CreateToggle({Name = "Auto Buy", CurrentValue = false, Flag = "Auto Buy2", Callback = function(Value)
+AllSave.AutoBuy2T = Shop:CreateToggle({Name = "Auto Buy", CurrentValue = false, Flag = "AutoBuy2T", Callback = function(Value)
     AutoBuy2 = Value
 end})
 
 Shop:CreateDivider()
 Shop:CreateLabel("Ribbit", 11413045091)
 
-local RibbitDrop = Shop:CreateDropdown({Name = "Ribbit Rack", Options = RibbitList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "Dropdown1", Callback = function(Value)
+AllSave.RibbitDrop = Shop:CreateDropdown({Name = "Ribbit Rack", Options = RibbitList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "RibbitDrop", Callback = function(Value)
     ShopRibbit = Value
 end})
 
-Shop:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "Buy All3", Callback = function(Value)
+AllSave.BuyAll3T = Shop:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "BuyAll3T", Callback = function(Value)
     BuyAll3 = Value
 end})
 
-Shop:CreateToggle({Name = "Auto Buy", CurrentValue = false, Flag = "Auto Buy3", Callback = function(Value)
+AllSave.AutoBuy3T = Shop:CreateToggle({Name = "Auto Buy", CurrentValue = false, Flag = "AutoBuy3T", Callback = function(Value)
     AutoBuy3 = Value
 end})
 
 local Event = Window:CreateTab("Event", 117500105561516)
 Event:CreateSection("Event")
 
-Event:CreateToggle({Name = "Auto Gift Santa", CurrentValue = false, Flag = "Auto Gift Santa", Callback = function(Value)
+AllSave.AutoGiftSantaT = Event:CreateToggle({Name = "Auto Gift Santa", CurrentValue = false, Flag = "AutoGiftSantaT", Callback = function(Value)
     AutoGiftSanta = Value
 end})
 
@@ -296,7 +318,7 @@ local AllToys = {
     "Toy Match Shapes",
 }
 
-Event:CreateToggle({Name = "Auto Farm", CurrentValue = false, Flag = "Auto Farm Event", Callback = function(Value)
+AllSave.AutoFarmEventT = Event:CreateToggle({Name = "Auto Farm", CurrentValue = false, Flag = "AutoFarmEventT", Callback = function(Value)
     AutoFrameEvent = Value
     if AutoFrameEvent then
         while AutoFrameEvent do
@@ -402,11 +424,63 @@ Event:CreateToggle({Name = "Auto Farm", CurrentValue = false, Flag = "Auto Farm 
     end
 end})
 
+Event:CreateDivider()
+Event:CreateLabel("Event Shop", 117500105561516)
+
+AllSave.HollyhopDrop1 = Event:CreateDropdown({Name = "Hollyhop: Tadpole", Options = HollyhopList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "HollyhopDrop1", Callback = function(Value)
+    ShopHollyhop = Value
+end})
+
+AllSave.HollyhopDrop2 = Event:CreateDropdown({Name = "Hollyhop: Decoration", Options = HollyhopList2, CurrentOption = {"None"}, MultipleOptions = true, Flag = "HollyhopDrop2", Callback = function(Value)
+    ShopHollyhop2 = Value
+end})
+
+AllSave.BuyAllET = Event:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "BuyAllET", Callback = function(Value)
+    BuyAllE = Value
+end})
+
+AllSave.AutoBuyET = Event:CreateToggle({Name = "Auto Buy", CurrentValue = false, Flag = "AutoBuyET", Callback = function(Value)
+    AutoBuyE = Value
+end})
+
 local PartCount = 0
 local DPartCount = 0
 
 Run = RunService.RenderStepped:Connect(function()
     if not Rayfield:GetGui() then
+        if AutoBuyE then
+    		for _, v in pairs(Hollyhop) do
+    		    if v[4] then
+        		    if not BuyAllE then
+            			if ShopHollyhop and table.find(ShopHollyhop, v[1]) and tonumber(plr.PlayerGui.CandyCaneUI.CashContainer.Container.Value.Text) >= v[3] and not v[4].Left.NoStockText.Visible then
+            				task.spawn(function()
+            				    game:GetService("ReplicatedStorage"):WaitForChild("HollyhopShopComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(v[1], v[2])
+            			    end)
+            			end
+            		else
+            		    if tonumber(plr.PlayerGui.CandyCaneUI.CashContainer.Container.Value.Text) >= v[3] and not v[4].Left.NoStockText.Visible then
+            				task.spawn(function()
+            				    game:GetService("ReplicatedStorage"):WaitForChild("HollyhopShopComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(v[1], v[2])
+            			    end)
+            			end
+            		end
+            	else
+            	    if not BuyAllE then
+            			if ShopHollyhop and table.find(ShopHollyhop, v[1]) and tonumber(plr.PlayerGui.CandyCaneUI.CashContainer.Container.Value.Text) >= v[2] and not v[3].Left.NoStockText.Visible then
+            				task.spawn(function()
+            				    game:GetService("ReplicatedStorage"):WaitForChild("HollyhopShopComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(v[1])
+            			    end)
+            			end
+            		else
+            		    if tonumber(plr.PlayerGui.CandyCaneUI.CashContainer.Container.Value.Text) >= v[2] and not v[3].Left.NoStockText.Visible then
+            				task.spawn(function()
+            				    game:GetService("ReplicatedStorage"):WaitForChild("HollyhopShopComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(v[1])
+            			    end)
+            			end
+            		end
+            	end
+    		end
+    	end
     	if AutoBuy1 then
     		for _, v in pairs(Frog) do
     		    if not BuyAll1 then
@@ -527,3 +601,25 @@ task.spawn(function()
     	RibbitCount:Set("Ribbit: "..plr.leaderstats.Ribbles:GetAttribute("RawValue"), 11537490966)
     end
 end)
+
+Rayfield:LoadConfiguration()
+
+if isfolder and isfolder("My Frog Pong") then
+    if isfile and isfile("My Frog Pong/data.rfld") then
+        if readfile then
+            local FileData = ""
+            FileData = readfile("My Frog Pong/data.rfld")
+            FileData = HttpService:JSONDecode(FileData)
+            if FileData then
+                for i, v in pairs(FileData) do
+                    task.wait(0.1)
+                    if type(v) == "boolean" and AllSave[i] then
+                        AllSave[i]:Set(v)
+                    elseif type(v) == "table" and AllSave[i] then
+                        AllSave[i]:Set(v)
+                    end
+                end
+            end
+        end
+    end
+end
