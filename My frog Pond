@@ -104,6 +104,7 @@ for i, v in pairs(plr.PlayerGui["Hollyhop Shop_Shop"].MainContainer.Container.Fr
 	    table.insert(Hollyhop2, {v.Name, tonumber(NumberCoverter(v.Right.PriceSection.Button.Amount.Text)), v})
 	end
 end
+
 for i, v in pairs(Hollyhop) do
 	table.insert(HollyhopList, v[1])
 end
@@ -466,7 +467,7 @@ Run = RunService.RenderStepped:Connect(function()
             		end
             	else
             	    if not BuyAllE then
-            			if ShopHollyhop and table.find(ShopHollyhop, v[1]) and tonumber(plr.PlayerGui.CandyCaneUI.CashContainer.Container.Value.Text) >= v[2] and not v[3].Left.NoStockText.Visible then
+            			if ShopHollyhop2 and table.find(ShopHollyhop2, v[1]) and tonumber(plr.PlayerGui.CandyCaneUI.CashContainer.Container.Value.Text) >= v[2] and not v[3].Left.NoStockText.Visible then
             				task.spawn(function()
             				    local args = {
                                 	v[1]
