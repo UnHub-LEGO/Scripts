@@ -1,0 +1,269 @@
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/UnHub-LEGO/Scripts/refs/heads/main/Rayfield%20Library'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "UnHub | by LE_GO89",
+   FileName = "UnHub",
+   Icon = 0,
+   LoadingTitle = "UnHub",
+   LoadingSubtitle = "by LE_GO89",
+   Theme = "Default",
+   ToggleUIKeybind = "H",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "My Anime Egg Farm",
+      FileName = "data"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "",
+      RememberJoins = true
+   },
+   KeySystem = false,
+   KeySettings = {
+      Title = "UnHub",
+      Subtitle = "Key",
+      Note = "Get the key by visit the website and wait 5 sec copy the key",
+      FileName = "Key",
+      SaveKey = false,
+      GrabKeyFromSite = false,
+      Key = {"Hi"}
+    }
+})
+
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local plr = game.Players.LocalPlayer
+local Players = game.Players
+local AllSave = {}
+local DoneOneLoop = true
+local AutoRoll, AutoBuyEgg, BuyAll1, AutoSell, AutoPickUpCrate = false, false, false, false, false
+local ST = Instance.new("ScreenGui")
+local T = Instance.new("ImageButton")
+local Corner = Instance.new("UICorner")
+local Backpack = plr.Backpack
+ST.Name = "Toggle UnHub"
+ST.Parent = Rayfield:GetParent().Parent
+ST.ResetOnSpawn = false
+Corner.Name = "Corner"
+Corner.Parent = T
+T.Name = "T"
+T.Parent = ST
+T.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+T.Position = UDim2.new(0, 30, 0.08, 0)
+T.Size = UDim2.new(0, 50, 0, 50)
+T.Image = "rbxassetid://112045743772867"
+T.Active = true
+T.Draggable = true
+T.MouseButton1Click:connect(function()
+    Rayfield:SetEnable(not Rayfield:GetEnable())
+end)
+
+local multipliers = {
+	K = 1e3,
+	M = 1e6,
+	B = 1e9,
+	T = 1e12
+}
+
+local function NumberCoverter(text)
+	text = tostring(text):upper()
+
+	local value, suffix = text:match("([%d%.]+)%s*([KMBT]?)")
+	value = tonumber(value)
+	if not value then return nil end
+
+	if suffix ~= "" and multipliers[suffix] then
+		return value * multipliers[suffix]
+	end
+
+	return value
+end
+
+local function GetEgg()
+	for i, v in pairs(workspace:GetChildren()) do
+		if v:IsA("Model") and v:FindFirstChild("Eggtag") then
+			return v
+		end
+	end
+	return nil
+end
+
+local function GetMoney()
+	return plr.leaderstats.Cash.Value
+end
+
+local function GetHight()
+	if plr.Character and plr.Character:FindFirstChild("Head") then
+		return tonumber((plr.Character.Head.Playertag.Container.Label.Text:gsub("m", "")))
+	end
+end
+
+local Tier = {"Basic", "Rare", "Legendary", "Epic", "Mythic", "Secret", "Exclusive", "Limited", "Developer", "Admin"}
+local SelectTier = {}
+local PickUpHight = 20
+
+local Main = Window:CreateTab("Main", 125058207637011)
+Main:CreateSection("Main")
+
+Main:CreateLabel("Server: "..game.JobId, 9692125126)
+
+AllSave.AntiAFKBypassT = Main:CreateToggle({Name = "Anti AFK Bypass", CurrentValue = false, Flag = "AntiAFKBypassT", Callback = function(Value)
+    local vu = game:GetService("VirtualUser")
+    if Value then
+    	RunAntiAfk = game:GetService("Players").LocalPlayer.Idled:connect(function()
+    		vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    		wait(1)
+    		vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    	end)
+    else
+        if RunAntiAfk then
+            RunAntiAfk:Disconnect()
+            RunAntiAfk = nil
+        end
+    end
+end})
+
+Main:CreateInput({Name = "Server", CurrentValue = "", PlaceholderText = "ServerId", RemoveTextAfterFocusLost = true, Callback = function(Value)
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, Value, plr)
+end})
+
+Main:CreateButton({Name = "Rejoin", Callback = function()
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, plr)
+end})
+
+Main:CreateButton({Name = "Server Hop", Callback = function()
+    local servers = {}
+    local req = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true")
+    local body = HttpService:JSONDecode(req)
+
+    if body and body.data then
+        for i, v in next, body.data do
+            if type(v) == "table" and tonumber(v.playing) and tonumber(v.maxPlayers) and v.playing < v.maxPlayers and v.id ~= game.JobId then
+                table.insert(servers, 1, v.id)
+            end
+        end
+    end
+
+    if #servers > 0 then
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[math.random(1, #servers)], plr)
+    end
+end})
+
+local Farm = Window:CreateTab("Farm", 13060262529)
+Farm:CreateSection("Farm")
+
+AllSave.TierDrop = Farm:CreateDropdown({Name = "Rarity", Options = Tier, CurrentOption = {"None"}, MultipleOptions = true, Flag = "TierDrop", Callback = function(Value)
+    SelectTier = Value
+end})
+
+AllSave.BuyAllT = Farm:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "BuyAllT", Callback = function(Value)
+    BuyAll1 = Value
+end})
+
+AllSave.AutoRollAndBuyEggT = Farm:CreateToggle({Name = "Auto Roll And Buy Egg", CurrentValue = false, Flag = "AutoRollAndBuyEggT", Callback = function(Value)
+    AutoRoll = Value
+    AutoBuyEgg = Value
+    DoneOneLoop = true
+end})
+
+AllSave.AutoSellT = Farm:CreateToggle({Name = "Auto Sell Crate", CurrentValue = false, Flag = "AutoSellT", Callback = function(Value)
+    AutoSell = Value
+end})
+
+AllSave.PickUpHightSlider = Farm:CreateSlider({Name = "Height", Range = {4, 1024}, Increment = 1, Suffix = "m", CurrentValue = 20, Flag = "PickUpHightSlider", Callback = function(Value)
+    PickUpHight = Value
+end})
+
+AllSave.AutoPickUpCrateT = Farm:CreateToggle({Name = "Auto Pick Up Crate", CurrentValue = false, Flag = "AutoPickUpCrateT", Callback = function(Value)
+    AutoPickUpCrate = Value
+end})
+
+--local Event = Window:CreateTab("Event", 117500105561516)
+--Event:CreateSection("Event")
+
+Run = RunService.RenderStepped:Connect(function()
+    if not Rayfield:GetGui() then
+        if AutoSell then
+        	for i, v in pairs(Backpack:GetChildren()) do
+        		if v.Name:find("Box Stack %[") and plr.Character then
+        			v.Parent = plr.Character
+        			task.spawn(function()
+        			    game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Internals"):WaitForChild("Skeleton"):WaitForChild("Conduit"):WaitForChild("Instances"):WaitForChild("_sellStack"):FireServer({__raw = true, data = {}})
+        			end)
+        		end
+        	end
+        end
+        if AutoPickUpCrate then
+        	if GetHight() >= PickUpHight then
+        	    task.spawn(function()
+        	        game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Internals"):WaitForChild("Skeleton"):WaitForChild("Conduit"):WaitForChild("Instances"):WaitForChild("_collectEarnings"):FireServer({__raw = true, data = {}})
+        	    end)
+        	end
+        end
+        if DoneOneLoop then
+            DoneOneLoop = false
+            
+            if AutoRoll then
+                local args = {
+            	{
+            		__raw = true,
+            		data = {
+            			confirmedSkip = true
+            		}
+            	}
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Internals"):WaitForChild("Skeleton"):WaitForChild("Conduit"):WaitForChild("Instances"):WaitForChild("_requestEgg"):FireServer(unpack(args))
+            end
+            local Need = false
+            local Child = workspace.ChildAdded:Wait()
+            if Child:IsA("Model") and Child:FindFirstChild("Eggtag") then
+                if AutoBuyEgg then
+                    local Egg = Child
+                    if BuyAll1 and Egg and tonumber((Egg.Eggtag.Container.Price.Text:gsub("[^%d%.]", ""))) <= GetMoney() then
+                        Need = true
+                        local args = {
+                        	{
+                        		__raw = true,
+                        		data = {
+                        		 	id = "entity_"..Egg.Name.."_egg",
+                        	   	rarity = Egg.Eggtag.Container.Rarity.Text,
+                        			variety = Egg.Eggtag.Container.Variety.Text
+                        		}
+                        	}
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Internals"):WaitForChild("Skeleton"):WaitForChild("Conduit"):WaitForChild("Instances"):WaitForChild("_purchaseEgg"):FireServer(unpack(args))
+                    elseif Egg and table.find(SelectTier, Egg.Eggtag.Container.Rarity.Text) and tonumber((Egg.Eggtag.Container.Price.Text:gsub("[^%d%.]", ""))) <= GetMoney() then
+                        Need = true
+                        local args = {
+                        	{
+                        		__raw = true,
+                        		data = {
+                        		 	id = "entity_"..Egg.Name.."_egg",
+                        	   	rarity = Egg.Eggtag.Container.Rarity.Text,
+                        			variety = Egg.Eggtag.Container.Variety.Text
+                        		}
+                        	}
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Internals"):WaitForChild("Skeleton"):WaitForChild("Conduit"):WaitForChild("Instances"):WaitForChild("_purchaseEgg"):FireServer(unpack(args))
+                    end
+                end
+            end
+            
+            if Need then
+                Child.Destroying:Wait()
+            end
+            DoneOneLoop = true
+        end
+    else
+        if ST then
+            ST:Destroy()
+        end
+        if Run then
+            Run:Disconnect()
+            Run = nil
+        end
+    end
+end)
+
+Rayfield:LoadConfiguration()
