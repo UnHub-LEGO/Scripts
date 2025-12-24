@@ -100,6 +100,7 @@ for i, v in pairs(plr.PlayerGui["Hollyhop Shop_Shop"].MainContainer.Container.Fr
 	if v:IsA("Frame") and v.Name:find(" Tadpole") then
 		table.insert(Hollyhop, {v.Name, v.Name:gsub(" Tadpole", " Frog"), tonumber(NumberCoverter(v.Right.PriceSection.Button.Amount.Text)), v})
 	elseif v:IsA("Frame") and not v.Name:find(" Tadpole") and v.Name ~= "Northstar Caller" then
+	    table.insert(Hollyhop, {v.Name, tonumber(NumberCoverter(v.Right.PriceSection.Button.Amount.Text)), v})
 	    table.insert(Hollyhop2, {v.Name, tonumber(NumberCoverter(v.Right.PriceSection.Button.Amount.Text)), v})
 	end
 end
@@ -340,7 +341,6 @@ AllSave.AutoFarmEventT = Event:CreateToggle({Name = "Auto Farm", CurrentValue = 
                             else
                                 T_Tadpole = t.FrogFrame.Title.Text.." Tadpole"
                             end
-                            print(T_Tadpole)
                             local Found = false
                             for i, v in pairs(plr.Plot.Value.Entities:GetChildren()) do
                         		if v:IsA("Part") and v.Name == t.FrogFrame.Title.Text then
@@ -468,13 +468,19 @@ Run = RunService.RenderStepped:Connect(function()
             	    if not BuyAllE then
             			if ShopHollyhop and table.find(ShopHollyhop, v[1]) and tonumber(plr.PlayerGui.CandyCaneUI.CashContainer.Container.Value.Text) >= v[2] and not v[3].Left.NoStockText.Visible then
             				task.spawn(function()
-            				    game:GetService("ReplicatedStorage"):WaitForChild("HollyhopShopComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(v[1])
+            				    local args = {
+                                	v[1]
+                                }
+                                game:GetService("ReplicatedStorage"):WaitForChild("HollyhopShopComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(unpack(args))
             			    end)
             			end
             		else
             		    if tonumber(plr.PlayerGui.CandyCaneUI.CashContainer.Container.Value.Text) >= v[2] and not v[3].Left.NoStockText.Visible then
             				task.spawn(function()
-            				    game:GetService("ReplicatedStorage"):WaitForChild("HollyhopShopComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(v[1])
+            				    local args = {
+                                	v[1]
+                                }
+                                game:GetService("ReplicatedStorage"):WaitForChild("HollyhopShopComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(unpack(args))
             			    end)
             			end
             		end
@@ -593,7 +599,7 @@ task.spawn(function()
             if t:IsA("Frame") then
                 PartCount = PartCount + 1
             end
-            if t.FrogFrame.Check.Visible then
+            if t:IsA("Frane") and t.FrogFrame.Check.Visible then
                 DPartCount = DPartCount + 1
             end
         end
