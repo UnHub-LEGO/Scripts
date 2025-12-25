@@ -100,6 +100,7 @@ local function GetHight()
 end
 
 local Tier = {"Basic", "Rare", "Legendary", "Epic", "Mythic", "Secret", "Exclusive", "Limited", "Developer", "Admin"}
+local Mutation = {"Normal", "Golden", "Diamond", "Glitch", "Galaxy"}
 local SelectTier = {}
 local PickUpHight = 20
 
@@ -155,6 +156,10 @@ Farm:CreateSection("Farm")
 
 AllSave.TierDrop = Farm:CreateDropdown({Name = "Rarity", Options = Tier, CurrentOption = {"None"}, MultipleOptions = true, Flag = "TierDrop", Callback = function(Value)
     SelectTier = Value
+end})
+
+AllSave.MutationDrop = Farm:CreateDropdown({Name = "Mutation", Options = Mutation, CurrentOption = {"None"}, MultipleOptions = true, Flag = "TierDrop", Callback = function(Value)
+    SelectMutation = Value
 end})
 
 AllSave.BuyAllT = Farm:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "BuyAllT", Callback = function(Value)
@@ -233,7 +238,7 @@ Run = RunService.RenderStepped:Connect(function()
                         	}
                         }
                         game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("Internals"):WaitForChild("Skeleton"):WaitForChild("Conduit"):WaitForChild("Instances"):WaitForChild("_purchaseEgg"):FireServer(unpack(args))
-                    elseif Egg and table.find(SelectTier, Egg.Eggtag.Container.Rarity.Text) and tonumber((Egg.Eggtag.Container.Price.Text:gsub("[^%d%.]", ""))) <= GetMoney() then
+                    elseif Egg and table.find(SelectTier, Egg.Eggtag.Container.Rarity.Text) and table.find(SelectMutation, Egg.Eggtag.Container.Variety.Text) and tonumber((Egg.Eggtag.Container.Price.Text:gsub("[^%d%.]", ""))) <= GetMoney() then
                         Need = true
                         local args = {
                         	{
