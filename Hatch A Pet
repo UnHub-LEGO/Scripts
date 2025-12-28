@@ -36,6 +36,7 @@ local TeleportService = game:GetService("TeleportService")
 local VIM = game:GetService("VirtualInputManager")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local DataReplica = require(ReplicatedStorage.Modules.DataReplica)
 local GetPetInfo = require(ReplicatedStorage.Modules.Common.GetPetInfo)
 local GetMutMods = require(ReplicatedStorage.Modules.Common.GetMutMods)
 local FullPetStats = require(ReplicatedStorage.Modules.Common.FullPetStats)
@@ -44,11 +45,14 @@ local PlayerData = require(ReplicatedStorage.Modules.DataReplica).Local
 local plr = game.Players.LocalPlayer
 local Players = game.Players
 local AllSave = {}
-local AutoBuyEgg, AutoBuyGear, BuyAllEgg, BuyAllGear, AutoEquipTheBestPet, AutoCollectGift, NoLimit = false, false, false, false, false, false, false
+local AutoBuyEgg, AutoBuyGear, BuyAllEgg, BuyAllGear, AutoEquipTheBestPet, AutoCollectGift, NoLimit, AutoMerge, MergeAll = false, false, false, false, false, false, false, false, false
 local ST = Instance.new("ScreenGui")
 local T = Instance.new("ImageButton")
 local Corner = Instance.new("UICorner")
 local Backpack = plr.Backpack
+local playerData = DataReplica.Local.Data
+local equippedPets = playerData.Equipped.Pets or {}
+local allPets = playerData.Pets or {}
 ST.Name = "Toggle UnHub"
 ST.Parent = Rayfield:GetParent().Parent
 ST.ResetOnSpawn = false
@@ -122,6 +126,9 @@ local EggList = {}
 local GearList = {}
 local SelectEgg = {}
 local SelectGear = {}
+local PetsTable = {}
+local PetsList = {}
+local SelectMergePet = {}
 local EggLimt = 10
 
 local function GetTheBestEggCount(v, IsNoLimit)
@@ -148,7 +155,22 @@ end
 
 for i, v in pairs(plr.PlayerGui.Main.Menus.ItemShop.ScrollingFrame:GetChildren()) do
     if v:IsA("Frame") and v:FindFirstChild("MainButton") then
-        table.insert(Gear, {v.MainButton.Main.Title.Text, v.MainButton.Main.Title.Text:gsub(" ", ""), NumberCoverter(v.MainButton.BuyFrame.Buy.TextLabel.Text), v})
+        table.insert(Gear, {v.MainButton.Main.Title.Text, v.Name, NumberCoverter(v.MainButton.BuyFrame.Buy.TextLabel.Text), v})
+    end
+end
+
+for petCode, amount in pairs(allPets) do
+    local equippedAmount = equippedPets[petCode] or 0
+    local totalAmount = amount - equippedAmount
+    if totalAmount < 0 then totalAmount = 0 end
+    if totalAmount > 9 then
+        PetsTable[petCode] = totalAmount
+    end
+end
+
+for code, amount in pairs(PetsTable) do
+    if not table.find(PetsList, string.split(code, "/")[1]) then
+        table.insert(PetsList, string.split(code, "/")[1])
     end
 end
 
@@ -218,6 +240,18 @@ Farm:CreateButton({Name = "Equip The Best Pet", Callback = function()
     EquipBest()
 end})
 
+AllSave.MergePetListDrop = Farm:CreateDropdown({Name = "Merge Pet List", Options = PetsList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "MergePetListDrop", Callback = function(Value)
+    SelectMergePet = Value
+end})
+
+AllSave.MergeAllT = Farm:CreateToggle({Name = "Merge All", CurrentValue = false, Flag = "MergeAllT", Callback = function(Value)
+    MergeAll = Value
+end})
+
+AllSave.AutoMergeT = Farm:CreateToggle({Name = "Auto Merge", CurrentValue = false, Flag = "AutoMergeT", Callback = function(Value)
+    AutoMerge = Value
+end})
+
 local Shop = Window:CreateTab("Shop", 10893267086)
 Shop:CreateSection("Shop")
 
@@ -272,30 +306,120 @@ local OnAutoCollectGift = true
 Run = RunService.RenderStepped:Connect(function()
     if not Rayfield:GetGui() then
         
-        if OnAutoCollectGift then
-            OnAutoCollectGift = false
-            local VIM = game:GetService("VirtualInputManager")
-            local player = game.Players.LocalPlayer
-            local char = player.Character or player.CharacterAdded:Wait()
-            local hrp = char:WaitForChild("HumanoidRootPart")
-            
-            for i, v in pairs(workspace.Filtered:GetChildren()) do
-                if v:IsA("Model") and v.Name == "Model" then
-                    local root = v:FindFirstChild("Root")
-                    if root then
-                        local prompt = root:FindFirstChild("CollectPrompt")
-                        if prompt then
-                            prompt.HoldDuration = 0
-                            prompt.MaxActivationDistance = 1000
-            
-                            hrp.CFrame = root.CFrame
-                            task.wait(0.2)
-                            fireproximityprompt(prompt)
+        if AutoMerge then
+            if not MergeAll then
+                for _, PetName in pairs(PetsList) do
+                    for i, v in pairs(PetsTable) do
+                        if i:find("/") then
+                            if string.split(i, "/")[1] == PetName then
+                                local args = {
+                                	{
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i
+                                	}
+                                }
+                                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("MergePets"):InvokeServer(unpack(args))
+                            end
+                        else
+                            if i == PetName then
+                                local args = {
+                                	{
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i
+                                	}
+                                }
+                                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("MergePets"):InvokeServer(unpack(args))
+                            end
+                        end
+                    end
+                end
+            else
+                for _, PetName in pairs(SelectMergePet) do
+                    for i, v in pairs(PetsTable) do
+                        if i:find("/") then
+                            if string.split(i, "/")[1] == PetName then
+                                local args = {
+                                	{
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i
+                                	}
+                                }
+                                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("MergePets"):InvokeServer(unpack(args))
+                            end
+                        else
+                            if i == PetName then
+                                local args = {
+                                	{
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i,
+                                		i
+                                	}
+                                }
+                                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("MergePets"):InvokeServer(unpack(args))
+                            end
                         end
                     end
                 end
             end
-            task.wait(2)
+        end
+        
+        if AutoCollectGift and OnAutoCollectGift then
+            OnAutoCollectGift = false
+            task.spawn(function()
+                local VIM = game:GetService("VirtualInputManager")
+                local player = game.Players.LocalPlayer
+                local char = player.Character or player.CharacterAdded:Wait()
+                local hrp = char:WaitForChild("HumanoidRootPart")
+                
+                for i, v in pairs(workspace.Filtered:GetChildren()) do
+                    if v:IsA("Model") and v.Name == "Model" then
+                        local root = v:FindFirstChild("Root")
+                        if root then
+                            local prompt = root:FindFirstChild("CollectPrompt")
+                            if prompt then
+                                prompt.HoldDuration = 0
+                                prompt.MaxActivationDistance = 1000
+                
+                                hrp.CFrame = root.CFrame
+                                task.wait(0.2)
+                                fireproximityprompt(prompt)
+                            end
+                        end
+                    end
+                end
+            end)
+            task.wait(3)
             OnAutoCollectGift = true
         end
         
@@ -389,7 +513,26 @@ Run = RunService.RenderStepped:Connect(function()
     end
 end)
 
-plr.PlayerGui.Main.Menus.Inventory.ScrollingFrame.ChildAdded:Connect(function(v)
+DataReplica.Local:OnSet({"Pets"}, function(newPets)
+    local playerData = DataReplica.Local.Data
+    local equippedPets = playerData.Equipped.Pets or {}
+    local allPets = playerData.Pets or {}
+    PetsTable = {}
+    for petCode, amount in pairs(allPets) do
+        local equippedAmount = equippedPets[petCode] or 0
+        local totalAmount = amount - equippedAmount
+        if totalAmount < 0 then totalAmount = 0 end
+        if totalAmount > 9 then
+            PetsTable[petCode] = totalAmount
+        end
+    end
+    PetsList = {}
+    for code, amount in pairs(PetsTable) do
+        if not table.find(PetsList, string.split(code, "/")[1]) then
+            table.insert(PetsList, string.split(code, "/")[1])
+        end
+    end
+    AllSave.MergePetListDrop:Refresh(PetsList)
     if AutoEquipTheBestPet then
         if v:IsA("TextButton") and v:GetAttribute("Topic") and v:GetAttribute("Topic") == "Pets" then
             EquipBest()
