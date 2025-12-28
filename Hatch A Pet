@@ -1,0 +1,400 @@
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/UnHub-LEGO/Scripts/refs/heads/main/Rayfield%20Library'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "UnHub | by LE_GO89",
+   FileName = "UnHub",
+   Icon = 0,
+   LoadingTitle = "UnHub",
+   LoadingSubtitle = "by LE_GO89",
+   Theme = "Default",
+   ToggleUIKeybind = "H",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "Hatch A Pet",
+      FileName = "data"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "",
+      RememberJoins = true
+   },
+   KeySystem = false,
+   KeySettings = {
+      Title = "UnHub",
+      Subtitle = "Key",
+      Note = "Get the key by visit the website and wait 5 sec copy the key",
+      FileName = "Key",
+      SaveKey = false,
+      GrabKeyFromSite = false,
+      Key = {"Hi"}
+    }
+})
+
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local VIM = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local GetPetInfo = require(ReplicatedStorage.Modules.Common.GetPetInfo)
+local GetMutMods = require(ReplicatedStorage.Modules.Common.GetMutMods)
+local FullPetStats = require(ReplicatedStorage.Modules.Common.FullPetStats)
+local PetRemotes = ReplicatedStorage.Remotes
+local PlayerData = require(ReplicatedStorage.Modules.DataReplica).Local
+local plr = game.Players.LocalPlayer
+local Players = game.Players
+local AllSave = {}
+local AutoBuyEgg, AutoBuyGear, BuyAllEgg, BuyAllGear, AutoEquipTheBestPet, AutoCollectGift, NoLimit = false, false, false, false, false, false, false
+local ST = Instance.new("ScreenGui")
+local T = Instance.new("ImageButton")
+local Corner = Instance.new("UICorner")
+local Backpack = plr.Backpack
+ST.Name = "Toggle UnHub"
+ST.Parent = Rayfield:GetParent().Parent
+ST.ResetOnSpawn = false
+Corner.Name = "Corner"
+Corner.Parent = T
+T.Name = "T"
+T.Parent = ST
+T.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+T.Position = UDim2.new(0, 30, 0.08, 0)
+T.Size = UDim2.new(0, 50, 0, 50)
+T.Image = "rbxassetid://112045743772867"
+T.Active = true
+T.Draggable = true
+T.MouseButton1Click:connect(function()
+    Rayfield:SetEnable(not Rayfield:GetEnable())
+end)
+
+local multipliers = {
+	K = 1e3,
+	M = 1e6,
+	B = 1e9,
+	T = 1e12
+}
+
+local function NumberCoverter(str)
+    return tonumber((str:gsub("%D", "")))
+end
+
+local function GetPlayerMoney()
+    return NumberCoverter(plr.PlayerGui.Main.MoneyDisplay.Money.Text)
+end
+
+local function EquipBest()
+    local allPets = PlayerData.Data.Pets
+    local maxEquipped = PlayerData.Data.Max_EquippedPets
+    local areaMultiplier = PlayerData.Data.AreaMoneyMultiplier or 1
+
+    local petList = {}
+    for petCode, _ in pairs(allPets) do
+        table.insert(petList, petCode)
+    end
+
+    table.sort(petList, function(petA, petB)
+        local petModuleA, modsA = GetPetInfo(petA)
+        local petModuleB, modsB = GetPetInfo(petB)
+
+        local mutModsA = GetMutMods(modsA)
+        local mutModsB = GetMutMods(modsB)
+
+        local moneyA, speedA = FullPetStats(petModuleA, mutModsA)
+        local moneyB, speedB = FullPetStats(petModuleB, mutModsB)
+
+        return (moneyA / speedA) > (moneyB / speedB)
+    end)
+
+    local bestPets = {}
+    for _, petCode in ipairs(petList) do
+        if #bestPets >= maxEquipped then break end
+        for i = 1, allPets[petCode] or 1 do
+            if #bestPets >= maxEquipped then break end
+            table.insert(bestPets, petCode)
+        end
+    end
+
+    PetRemotes.ChangePetLoadout:InvokeServer(bestPets)
+end
+
+local Egg = {}
+local Gear = {}
+local EggList = {}
+local GearList = {}
+local SelectEgg = {}
+local SelectGear = {}
+local EggLimt = 10
+
+local function GetTheBestEggCount(v, IsNoLimit)
+    if IsNoLimit then
+        if (NumberCoverter(v[4].PriceTag.Stock.Text) * v[3]) > GetPlayerMoney() then
+            return math.floor((GetPlayerMoney() / v[3]))
+        else
+            return NumberCoverter(v[4].PriceTag.Stock.Text)
+        end
+    end
+    if ((NumberCoverter(v[4].PriceTag.Stock.Text) < EggLimt and NumberCoverter(v[4].PriceTag.Stock.Text) or EggLimt) * v[3]) > GetPlayerMoney() then
+        return math.floor((GetPlayerMoney() / v[3]))
+    else
+        return tonumber((NumberCoverter(v[4].PriceTag.Stock.Text) < EggLimt and NumberCoverter(v[4].PriceTag.Stock.Text) or EggLimt))
+    end
+end
+
+for i, v in pairs(workspace.EggShop.Eggs:GetChildren()) do
+    if v:IsA("Model") and v.Name:find("Egg") and v:FindFirstChild("Model") and v:FindFirstChild("PriceTag") then
+        table.insert(Egg, {v.Name:gsub("Egg", " Egg"), v.Name, NumberCoverter(v.PriceTag.Price.Text), v})
+    end
+end
+
+
+for i, v in pairs(plr.PlayerGui.Main.Menus.ItemShop.ScrollingFrame:GetChildren()) do
+    if v:IsA("Frame") and v:FindFirstChild("MainButton") then
+        table.insert(Gear, {v.MainButton.Main.Title.Text, v.MainButton.Main.Title.Text:gsub(" ", ""), NumberCoverter(v.MainButton.BuyFrame.Buy.TextLabel.Text), v})
+    end
+end
+
+for i, v in pairs(Egg) do
+    table.insert(EggList, v[1])
+end
+
+for i, v in pairs(Gear) do
+    table.insert(GearList, v[1])
+end
+
+local Main = Window:CreateTab("Main", 125058207637011)
+Main:CreateSection("Main")
+
+Main:CreateLabel("Server: "..game.JobId, 9692125126)
+
+AllSave.AntiAFKBypassT = Main:CreateToggle({Name = "Anti AFK Bypass", CurrentValue = false, Flag = "AntiAFKBypassT", Callback = function(Value)
+    local vu = game:GetService("VirtualUser")
+    if Value then
+    	RunAntiAfk = game:GetService("Players").LocalPlayer.Idled:connect(function()
+    		vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    		wait(1)
+    		vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    	end)
+    else
+        if RunAntiAfk then
+            RunAntiAfk:Disconnect()
+            RunAntiAfk = nil
+        end
+    end
+end})
+
+Main:CreateInput({Name = "Server", CurrentValue = "", PlaceholderText = "ServerId", RemoveTextAfterFocusLost = true, Callback = function(Value)
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, Value, plr)
+end})
+
+Main:CreateButton({Name = "Rejoin", Callback = function()
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, plr)
+end})
+
+Main:CreateButton({Name = "Server Hop", Callback = function()
+    local servers = {}
+    local req = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true")
+    local body = HttpService:JSONDecode(req)
+
+    if body and body.data then
+        for i, v in next, body.data do
+            if type(v) == "table" and tonumber(v.playing) and tonumber(v.maxPlayers) and v.playing < v.maxPlayers and v.id ~= game.JobId then
+                table.insert(servers, 1, v.id)
+            end
+        end
+    end
+
+    if #servers > 0 then
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[math.random(1, #servers)], plr)
+    end
+end})
+
+local Farm = Window:CreateTab("Farm", 13060262529)
+Farm:CreateSection("Farm")
+
+AllSave.AutoEquipTheBestPetT = Farm:CreateToggle({Name = "Auto Equip The Best Pet", CurrentValue = false, Flag = "AutoEquipTheBestPetT", Callback = function(Value)
+    AutoEquipTheBestPet = Value
+end})
+
+Farm:CreateButton({Name = "Equip The Best Pet", Callback = function()
+    EquipBest()
+end})
+
+local Shop = Window:CreateTab("Shop", 10893267086)
+Shop:CreateSection("Shop")
+
+Shop:CreateLabel("Egg Shop", 4857721272)
+
+AllSave.EggDrop = Shop:CreateDropdown({Name = "Egg List", Options = EggList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "EggDrop", Callback = function(Value)
+    SelectEgg = Value
+end})
+
+AllSave.LimitSlider = Shop:CreateSlider({Name = "Buy Limit Per Stock", Range = {1, 1000}, Increment = 1, Suffix = "Eggs", CurrentValue = 10, Flag = "LimitSlider", Callback = function(Value)
+    EggLimt = Value
+end})
+
+AllSave.BuyAll1T = Shop:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "BuyAll1T", Callback = function(Value)
+    BuyAllEgg = Value
+end})
+
+AllSave.NoLimitT = Shop:CreateToggle({Name = "No Limit", CurrentValue = false, Flag = "NoLimitT", Callback = function(Value)
+    NoLimit = Value
+end})
+
+AllSave.AutoBuy1T = Shop:CreateToggle({Name = "Auto Buy", CurrentValue = false, Flag = "AutoBuy1T", Callback = function(Value)
+    AutoBuyEgg = Value
+end})
+
+Shop:CreateDivider()
+Shop:CreateLabel("Gear Shop", 11413045091)
+
+AllSave.GearDrop = Shop:CreateDropdown({Name = "Gear List", Options = GearList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "GearDrop", Callback = function(Value)
+    SelectGear = Value
+end})
+
+AllSave.BuyAll2T = Shop:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "BuyAll2T", Callback = function(Value)
+    BuyAllGear = Value
+end})
+
+AllSave.AutoBuy2T = Shop:CreateToggle({Name = "Auto Buy", CurrentValue = false, Flag = "AutoBuy2T", Callback = function(Value)
+    AutoBuyGear = Value
+end})
+
+local Event = Window:CreateTab("Event", 117500105561516)
+Event:CreateSection("Event")
+
+AllSave.AutoCollectGiftT = Event:CreateToggle({Name = "Auto Collect Gift", CurrentValue = false, Flag = "AutoCollectGiftT", Callback = function(Value)
+    AutoCollectGift = Value
+end})
+
+local OneReset = true
+local OnReset = true
+local OnAutoCollectGift = true
+
+Run = RunService.RenderStepped:Connect(function()
+    if not Rayfield:GetGui() then
+        
+        if OnAutoCollectGift then
+            OnAutoCollectGift = false
+            local VIM = game:GetService("VirtualInputManager")
+            local player = game.Players.LocalPlayer
+            local char = player.Character or player.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart")
+            
+            for i, v in pairs(workspace.Filtered:GetChildren()) do
+                if v:IsA("Model") and v.Name == "Model" then
+                    local root = v:FindFirstChild("Root")
+                    if root then
+                        local prompt = root:FindFirstChild("CollectPrompt")
+                        if prompt then
+                            prompt.HoldDuration = 0
+                            prompt.MaxActivationDistance = 1000
+            
+                            hrp.CFrame = root.CFrame
+                            task.wait(0.2)
+                            fireproximityprompt(prompt)
+                        end
+                    end
+                end
+            end
+            task.wait(2)
+            OnAutoCollectGift = true
+        end
+        
+        if plr.PlayerGui.Main.Buttons.TopButtons.Goto_Eggs.EggTimer.Text == "5:00" and OneReset then
+            OneReset = false
+            OnReset = true
+            task.wait(1.2)
+            OneReset = true
+        end
+        
+        if AutoBuyEgg and OnReset then
+            OnReset = false
+            if not NoLimit then
+                if not BuyAllEgg then
+                    for i, v in pairs(Egg) do
+                        if table.find(SelectEgg, v[1]) and v[3] <= GetPlayerMoney() and v[4].PriceTag.Stock.TextTransparency == 0 then
+                            local args = {
+                            	game:GetService("ReplicatedStorage"):WaitForChild("Eggs"):WaitForChild(v[2]),
+                            	GetTheBestEggCount(v, false)
+                            }
+                            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("BuyEgg"):InvokeServer(unpack(args))
+                        end
+                    end
+                else
+                    for i, v in pairs(Egg) do
+                        if v[3] <= GetPlayerMoney() and v[4].PriceTag.Stock.TextTransparency == 0 then
+                            local args = {
+                            	game:GetService("ReplicatedStorage"):WaitForChild("Eggs"):WaitForChild(v[2]),
+                            	GetTheBestEggCount(v, false)
+                            }
+                            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("BuyEgg"):InvokeServer(unpack(args))
+                        end
+                    end
+                end
+            else
+                if not BuyAllEgg then
+                    for i, v in pairs(Egg) do
+                        if table.find(SelectEgg, v[1]) and v[3] <= GetPlayerMoney() and v[4].PriceTag.Stock.TextTransparency == 0 then
+                            local args = {
+                            	game:GetService("ReplicatedStorage"):WaitForChild("Eggs"):WaitForChild(v[2]),
+                            	GetTheBestEggCount(v, true)
+                            }
+                            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("BuyEgg"):InvokeServer(unpack(args))
+                        end
+                    end
+                else
+                    for i, v in pairs(Egg) do
+                        if v[3] <= GetPlayerMoney() and v[4].PriceTag.Stock.TextTransparency == 0 then
+                            local args = {
+                            	game:GetService("ReplicatedStorage"):WaitForChild("Eggs"):WaitForChild(v[2]),
+                            	GetTheBestEggCount(v, true)
+                            }
+                            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("BuyEgg"):InvokeServer(unpack(args))
+                        end
+                    end
+                end
+            end
+        end
+        
+        if AutoBuyGear then
+            if not BuyAllGear then
+                for i, v in pairs(Gear) do
+                    if table.find(SelectGear, v[1]) and v[3] <= GetPlayerMoney() and NumberCoverter(v[4].MainButton.Main.StockRemaining.Text) > 0 then
+                        local args = {
+                        	game:GetService("ReplicatedStorage"):WaitForChild("Items"):WaitForChild(v[2]),
+                        	1
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("BuyItem"):InvokeServer(unpack(args))
+                    end
+                end
+            else
+                for i, v in pairs(Gear) do
+                    if v[3] <= GetPlayerMoney() and NumberCoverter(v[4].MainButton.Main.StockRemaining.Text) > 0 then
+                        local args = {
+                        	game:GetService("ReplicatedStorage"):WaitForChild("Items"):WaitForChild(v[2]),
+                        	1
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("BuyItem"):InvokeServer(unpack(args))
+                    end
+                end
+            end
+        end
+    else
+        if ST then
+            ST:Destroy()
+        end
+        if Run then
+            Run:Disconnect()
+            Run = nil
+        end
+    end
+end)
+
+plr.PlayerGui.Main.Menus.Inventory.ScrollingFrame.ChildAdded:Connect(function(v)
+    if AutoEquipTheBestPet then
+        if v:IsA("TextButton") and v:GetAttribute("Topic") and v:GetAttribute("Topic") == "Pets" then
+            EquipBest()
+        end
+    end
+end)
+
+Rayfield:LoadConfiguration()
