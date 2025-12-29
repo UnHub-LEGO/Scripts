@@ -319,7 +319,7 @@ Run = RunService.RenderStepped:Connect(function()
         
         if AutoMerge then
             if not MergeAll then
-                for _, PetName in pairs(PetsList) do
+                for _, PetName in pairs(SelectMergePet) do
                     for i, v in pairs(PetsTable) do
                         if i:find("/") then
                             if string.split(i, "/")[1] == PetName then
@@ -361,7 +361,7 @@ Run = RunService.RenderStepped:Connect(function()
                     end
                 end
             else
-                for _, PetName in pairs(SelectMergePet) do
+                for _, PetName in pairs(PetsList) do
                     for i, v in pairs(PetsTable) do
                         if i:find("/") then
                             if string.split(i, "/")[1] == PetName then
