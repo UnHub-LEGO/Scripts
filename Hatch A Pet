@@ -45,7 +45,7 @@ local PlayerData = require(ReplicatedStorage.Modules.DataReplica).Local
 local plr = game.Players.LocalPlayer
 local Players = game.Players
 local AllSave = {}
-local AutoBuyEgg, AutoBuyGear, BuyAllEgg, BuyAllGear, AutoEquipTheBestPet, AutoCollectGift, NoLimit, AutoMerge, MergeAll = false, false, false, false, false, false, false, false, false
+local AutoBuyEgg, AutoBuyGear, BuyAllEgg, BuyAllGear, AutoEquipTheBestPet, AutoCollectGift, NoLimit, AutoMerge, MergeAll, AutoBuyE, BuyAllE = false, false, false, false, false, false, false, false, false, false, false
 local ST = Instance.new("ScreenGui")
 local T = Instance.new("ImageButton")
 local Corner = Instance.new("UICorner")
@@ -126,6 +126,9 @@ local EggList = {}
 local GearList = {}
 local SelectEgg = {}
 local SelectGear = {}
+local Events = {}
+local EventList = {}
+local SelectEvent = {}
 local PetsTable = {}
 local PetsList = {}
 local SelectMergePet = {}
@@ -161,8 +164,14 @@ end
 
 
 for i, v in pairs(plr.PlayerGui.Main.Menus.ItemShop.ScrollingFrame:GetChildren()) do
-    if v:IsA("Frame") and v:FindFirstChild("MainButton") then
+    if v:IsA("Frame") and v:FindFirstChild("MainButton") and v.Name ~= "Frame" then
         table.insert(Gear, {v.MainButton.Main.Title.Text, v.Name, NumberCoverter(v.MainButton.BuyFrame.Buy.TextLabel.Text), v})
+    end
+end
+
+for i, v in pairs(plr.PlayerGui.Main.Menus.EventShop.ScrollingFrame:GetChildren()) do
+    if v:IsA("Frame") and v:FindFirstChild("MainButton") and v.Name ~= "Frame" then
+        table.insert(Events, {v.MainButton.Main.Title.Text, v.Name, NumberCoverter(v.MainButton.BuyFrame.Buy.Price.TextLabel.Text), v})
     end
 end
 
@@ -187,6 +196,10 @@ end
 
 for i, v in pairs(Gear) do
     table.insert(GearList, v[1])
+end
+
+for i, v in pairs(Events) do
+    table.insert(EventList, v[1])
 end
 
 local Main = Window:CreateTab("Main", 125058207637011)
@@ -310,6 +323,18 @@ AllSave.AutoCollectGiftT = Event:CreateToggle({Name = "Auto Collect Gift", Curre
     AutoCollectGift = Value
 end})
 
+AllSave.EventDrop = Event:CreateDropdown({Name = "Event Shop", Options = EventList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "EventDrop", Callback = function(Value)
+    SelectEvent = Value
+end})
+
+AllSave.BuyAllET = Event:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "BuyAllET", Callback = function(Value)
+    BuyAllE = Value
+end})
+
+AllSave.AutoBuyET = Event:CreateToggle({Name = "Auto Buy", CurrentValue = false, Flag = "AutoBuyET", Callback = function(Value)
+    AutoBuyE = Value
+end})
+
 local OneReset = true
 local OnReset = true
 local OnAutoCollectGift = true
@@ -405,6 +430,32 @@ Run = RunService.RenderStepped:Connect(function()
             end
         end
         
+        if AutoBuyE then
+            if not BuyAllE then
+                for i, v in pairs(Events) do
+                    if table.find(SelectEvent, v[1]) and v[3] <= NumberCoverter(plr.PlayerGui.Main.MoneyDisplay.Candy.TextLabel.Text) and NumberCoverter(v[4].MainButton.Main.StockRemaining.Text) > 0 then
+                        local args = {
+                            "Items",
+                        	v[2],
+                        	1
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("BuyEventItem"):InvokeServer(unpack(args))
+                    end
+                end
+            else
+                for i, v in pairs(Events) do
+                    if v[3] <= NumberCoverter(plr.PlayerGui.Main.MoneyDisplay.Candy.TextLabel.Text) and NumberCoverter(v[4].MainButton.Main.StockRemaining.Text) > 0 then
+                        local args = {
+                            "Items",
+                        	v[2],
+                        	1
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("BuyEventItem"):InvokeServer(unpack(args))
+                    end
+                end
+            end
+        end
+        
         if AutoCollectGift and OnAutoCollectGift then
             OnAutoCollectGift = false
             task.spawn(function()
@@ -429,8 +480,9 @@ Run = RunService.RenderStepped:Connect(function()
                                 Num = Num + 1
                                 prompt.HoldDuration = 0
                                 prompt.MaxActivationDistance = 1000
+                                hrp.CFrame.Anchored = true
                 
-                                hrp.CFrame = root.CFrame
+                                hrp.CFrame = root.CFrame * CFrame.new(0, -4, 0)
                                 task.wait(0.2)
                                 fireproximityprompt(prompt)
                             end
@@ -438,8 +490,9 @@ Run = RunService.RenderStepped:Connect(function()
                     end
                 end
                 if Present then
-                    plr.Character.HumanoidRootPart.CFrame = CFrame.new(10, 2.99999976, -153, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+                    hrp.CFrame.CFrame = CFrame.new(10, 2.99999976, -153, 1, 0, 0, 0, 1, 0, 0, 0, 1)
                 end
+                hrp.CFrame.Anchored = false
             end)
             task.wait(3)
             OnAutoCollectGift = true
