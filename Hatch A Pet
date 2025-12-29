@@ -45,7 +45,7 @@ local PlayerData = require(ReplicatedStorage.Modules.DataReplica).Local
 local plr = game.Players.LocalPlayer
 local Players = game.Players
 local AllSave = {}
-local AutoBuyEgg, AutoBuyGear, BuyAllEgg, BuyAllGear, AutoEquipTheBestPet, AutoCollectGift, NoLimit, AutoMerge, MergeAll, AutoBuyE, BuyAllE = false, false, false, false, false, false, false, false, false, false, false
+local AutoBuyEgg, AutoBuyGear, BuyAllEgg, BuyAllGear, AutoEquipTheBestPet, AutoCollectGift, NoLimit, AutoMerge, MergeAll, AutoBuyE, BuyAllE, AutoBuyEventEgg = false, false, false, false, false, false, false, false, false, false, false, false
 local ST = Instance.new("ScreenGui")
 local T = Instance.new("ImageButton")
 local Corner = Instance.new("UICorner")
@@ -335,6 +335,10 @@ AllSave.AutoBuyET = Event:CreateToggle({Name = "Auto Buy", CurrentValue = false,
     AutoBuyE = Value
 end})
 
+AllSave.AutoBuyEventEggT = Event:CreateToggle({Name = "Auto Buy Egg", CurrentValue = false, Flag = "AutoBuyEventEggT", Callback = function(Value)
+    AutoBuyEventEgg = Value
+end})
+
 local OneReset = true
 local OnReset = true
 local OnAutoCollectGift = true
@@ -427,6 +431,18 @@ Run = RunService.RenderStepped:Connect(function()
                         end
                     end
                 end
+            end
+        end
+        
+        if AutoBuyEventEgg then
+            local A = {"", "", 1000000, workspace.EventSection.Eggs.HolidayEgg}
+            if 1000000 <= GetPlayerMoney() then
+                local args = {
+                	"Eggs",
+                	"HolidayEgg",
+                	GetTheBestEggCount(A, true)
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("BuyEventItem"):InvokeServer(unpack(args))
             end
         end
         
