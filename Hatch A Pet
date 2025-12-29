@@ -129,6 +129,7 @@ local SelectGear = {}
 local PetsTable = {}
 local PetsList = {}
 local SelectMergePet = {}
+local Plot
 local EggLimt = 10
 
 local function GetTheBestEggCount(v, IsNoLimit)
@@ -143,6 +144,12 @@ local function GetTheBestEggCount(v, IsNoLimit)
         return math.floor((GetPlayerMoney() / v[3]))
     else
         return tonumber((NumberCoverter(v[4].PriceTag.Stock.Text) < EggLimt and NumberCoverter(v[4].PriceTag.Stock.Text) or EggLimt))
+    end
+end
+
+for i, v in pairs(workspace.Plots:GetChildren()) do
+    if v:IsA("Model") and v.Name == "Plot" and v.OwnerDisplay.Screen.SurfaceGui.PlrName.Text == plr.DisplayName.."'s" then
+        Plot = v
     end
 end
 
@@ -238,6 +245,10 @@ end})
 
 Farm:CreateButton({Name = "Equip The Best Pet", Callback = function()
     EquipBest()
+end})
+
+AllSave.AutoCollectCashT = Farm:CreateToggle({Name = "Auto Collect Cash", CurrentValue = false, Flag = "AutoCollectCashT", Callback = function(Value)
+    AutoCollectCash = Value
 end})
 
 AllSave.MergePetListDrop = Farm:CreateDropdown({Name = "Merge Pet List", Options = PetsList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "MergePetListDrop", Callback = function(Value)
@@ -401,13 +412,21 @@ Run = RunService.RenderStepped:Connect(function()
                 local player = game.Players.LocalPlayer
                 local char = player.Character or player.CharacterAdded:Wait()
                 local hrp = char:WaitForChild("HumanoidRootPart")
-                
+                local Num = 0
+                local Present = false
                 for i, v in pairs(workspace.Filtered:GetChildren()) do
                     if v:IsA("Model") and v.Name == "Model" then
                         local root = v:FindFirstChild("Root")
                         if root then
                             local prompt = root:FindFirstChild("CollectPrompt")
                             if prompt then
+                                Present = true
+                                if Num == 3 then
+                                    plr.Character.HumanoidRootPart.CFrame = CFrame.new(10, 2.99999976, -153, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+                                    Num = 0
+                                    task.wait(1)
+                                end
+                                Num = Num + 1
                                 prompt.HoldDuration = 0
                                 prompt.MaxActivationDistance = 1000
                 
@@ -417,6 +436,9 @@ Run = RunService.RenderStepped:Connect(function()
                             end
                         end
                     end
+                end
+                if Present then
+                    plr.Character.HumanoidRootPart.CFrame = CFrame.new(10, 2.99999976, -153, 1, 0, 0, 0, 1, 0, 0, 0, 1)
                 end
             end)
             task.wait(3)
@@ -428,6 +450,12 @@ Run = RunService.RenderStepped:Connect(function()
             OnReset = true
             task.wait(1.2)
             OneReset = true
+        end
+        
+        if AutoCollectCash then
+            firetouchinterest(Plot.CollectMoney.CollectTrigger, plr.Character.HumanoidRootPart, 0)
+            task.wait()
+            firetouchinterest(Plot.CollectMoney.CollectTrigger, plr.Character.HumanoidRootPart, 1)
         end
         
         if AutoBuyEgg and OnReset then
@@ -534,9 +562,7 @@ DataReplica.Local:OnSet({"Pets"}, function(newPets)
     end
     AllSave.MergePetListDrop:Refresh(PetsList)
     if AutoEquipTheBestPet then
-        if v:IsA("TextButton") and v:GetAttribute("Topic") and v:GetAttribute("Topic") == "Pets" then
-            EquipBest()
-        end
+        EquipBest()
     end
 end)
 
