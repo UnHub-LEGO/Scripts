@@ -480,19 +480,21 @@ Run = RunService.RenderStepped:Connect(function()
                                 Num = Num + 1
                                 prompt.HoldDuration = 0
                                 prompt.MaxActivationDistance = 1000
-                                hrp.CFrame.Anchored = true
+                                hrp.Anchored = false
                 
                                 hrp.CFrame = root.CFrame * CFrame.new(0, -4, 0)
+                                
                                 task.wait(0.2)
                                 fireproximityprompt(prompt)
+                                hrp.Anchored = true
                             end
                         end
                     end
                 end
                 if Present then
-                    hrp.CFrame.CFrame = CFrame.new(10, 2.99999976, -153, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+                    hrp.CFrame = CFrame.new(10, 2.99999976, -153, 1, 0, 0, 0, 1, 0, 0, 0, 1)
                 end
-                hrp.CFrame.Anchored = false
+                hrp.Anchored = false
             end)
             task.wait(3)
             OnAutoCollectGift = true
