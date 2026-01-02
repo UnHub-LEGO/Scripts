@@ -2278,6 +2278,9 @@ function RayfieldLibrary:CreateWindow(Settings)
 			ScrollingFrame.ScrollBarImageTransparency = 1
 			ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
 			ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+			ScrollingFrame.HorizontalScrollBarInset = Enum.ScrollBarInset.Always
+			ScrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.Always
+			
 		
 		    local TextBox = Instance.new("TextBox")
 		    TextBox.Name = "TextBox"
