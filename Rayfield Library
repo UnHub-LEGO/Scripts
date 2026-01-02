@@ -889,7 +889,6 @@ local function LoadConfiguration(Configuration)
 
 	if not success then warn('Rayfield had an issue decoding the configuration file, please try delete the file and reopen Rayfield.') return end
 
-	-- Iterate through current UI elements' flags
 	for FlagName, Flag in pairs(RayfieldLibrary.Flags) do
 		local FlagValue = Data[FlagName]
 
@@ -908,7 +907,6 @@ local function LoadConfiguration(Configuration)
 		else
 			warn("Rayfield | Unable to find '"..FlagName.. "' in the save file.")
 			print("The error above may not be an issue if new elements have been added or not been set values.")
-			--RayfieldLibrary:Notify({Title = "Rayfield Flags", Content = "Rayfield was unable to find '"..FlagName.. "' in the save file. Check sirius.menu/discord for help.", Image = 3944688398})
 		end
 	end
 
@@ -2259,7 +2257,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 		    local TextEditor = Instance.new("Frame")
 		    TextEditor.Name = TextEditorSettings.Name
 		    TextEditor.Parent = TabPage
-		    TextEditor.Size = UDim2.new(1, -10, 0, 145)
+		    TextEditor.Size = UDim2.new(1, -10, 0, 73)
 		    TextEditor.BackgroundColor3 = Color3.new(0.137, 0.137, 0.137)
 		
 		    local UICorner = Instance.new("UICorner")
@@ -2278,11 +2276,12 @@ function RayfieldLibrary:CreateWindow(Settings)
 			ScrollingFrame.BackgroundTransparency = 1
 			ScrollingFrame.ScrollBarThickness = 0
 			ScrollingFrame.ScrollBarImageTransparency = 1
-			ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+			ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
 			ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 		
 		    local TextBox = Instance.new("TextBox")
 		    TextBox.Name = "TextBox"
+		    TextBox.AutomaticSize = Enum.AutomaticSize.XY
 		    TextBox.Parent = ScrollingFrame
 		    TextBox.Position = UDim2.new(0.5, 0, 0.5, 0)
 		    TextBox.Size = UDim2.new(1, 0, 1, 0)
@@ -3201,17 +3200,19 @@ function RayfieldLibrary:CreateWindow(Settings)
 					end
 				end
 				SetDropdownOptions()
-				TweenService:Create(Dropdown, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, -10, 0, 180)}):Play()
-				Dropdown.List.Visible = true
-				TweenService:Create(Dropdown.List, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ScrollBarImageTransparency = 0.7}):Play()
-				TweenService:Create(Dropdown.Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Rotation = 0}):Play()	
-				for _, DropdownOpt in ipairs(Dropdown.List:GetChildren()) do
-					if DropdownOpt.ClassName == "Frame" and DropdownOpt.Name ~= "Placeholder" then
-						if DropdownOpt.Name ~= Dropdown.Selected.Text then
-							TweenService:Create(DropdownOpt.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
+				if Dropdown.List.Visible then
+					TweenService:Create(Dropdown, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, -10, 0, 180)}):Play()
+					Dropdown.List.Visible = true
+					TweenService:Create(Dropdown.List, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ScrollBarImageTransparency = 0.7}):Play()
+					TweenService:Create(Dropdown.Toggle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Rotation = 0}):Play()	
+					for _, DropdownOpt in ipairs(Dropdown.List:GetChildren()) do
+						if DropdownOpt.ClassName == "Frame" and DropdownOpt.Name ~= "Placeholder" then
+							if DropdownOpt.Name ~= Dropdown.Selected.Text then
+								TweenService:Create(DropdownOpt.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
+							end
+							TweenService:Create(DropdownOpt, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+							TweenService:Create(DropdownOpt.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 						end
-						TweenService:Create(DropdownOpt, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
-						TweenService:Create(DropdownOpt.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 					end
 				end
 			end
@@ -4043,6 +4044,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 		InputBox.BackgroundTransparency = 1
 		InputBox.ZIndex = 7
 		InputBox.Text = [[]]
+		InputBox.ClearTextOnFocus = false
 		InputBox.PlaceholderText = TextHolder
 		InputBox.TextColor3 = Color3.new(0.9411764740943909, 0.9411764740943909, 0.9411764740943909)
 		InputBox.TextSize = 14
