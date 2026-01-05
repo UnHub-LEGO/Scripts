@@ -1,0 +1,335 @@
+local plr = game.Players.LocalPlayer
+local prompt = workspace.Environment.Interactables.Store.Part.ProximityPrompt
+local PartCFrame = plr.Character.HumanoidRootPart.CFrame
+
+plr.Character.HumanoidRootPart.CFrame = workspace.Environment.Interactables.Store.Part.CFrame
+prompt.HoldDuration = 0
+task.wait(0.5)
+prompt:InputHoldBegin(plr)
+task.wait()
+prompt:InputHoldEnd(plr)
+task.wait(0.1)
+prompt:InputHoldBegin(plr)
+task.wait()
+prompt:InputHoldEnd(plr)
+task.wait()
+plr.Character.HumanoidRootPart.CFrame = PartCFrame
+
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/UnHub-LEGO/Scripts/refs/heads/main/Rayfield%20Library'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "UnHub | by LE_GO89",
+   FileName = "UnHub",
+   Icon = 0,
+   LoadingTitle = "UnHub",
+   LoadingSubtitle = "by LE_GO89",
+   Theme = "Default",
+   ToggleUIKeybind = "H",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "Hatch A Pet",
+      FileName = "data"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "",
+      RememberJoins = true
+   },
+   KeySystem = false,
+   KeySettings = {
+      Title = "UnHub",
+      Subtitle = "Key",
+      Note = "Get the key by visit the website and wait 5 sec copy the key",
+      FileName = "Key",
+      SaveKey = false,
+      GrabKeyFromSite = false,
+      Key = {"Hi"}
+    }
+})
+
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local VIM = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local UtilsModule = require(game.Players.LocalPlayer.PlayerGui.Scripts.UtilsModule)
+local Players = game.Players
+local AllSave = {}
+local AutoRoll, AutoSellMount = false, false
+local ST = Instance.new("ScreenGui")
+local T = Instance.new("ImageButton")
+local Corner = Instance.new("UICorner")
+local Backpack = plr.Backpack
+ST.Name = "Toggle UnHub"
+ST.Parent = Rayfield:GetParent().Parent
+ST.ResetOnSpawn = false
+Corner.Name = "Corner"
+Corner.Parent = T
+T.Name = "T"
+T.Parent = ST
+T.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+T.Position = UDim2.new(0, 30, 0.08, 0)
+T.Size = UDim2.new(0, 50, 0, 50)
+T.Image = "rbxthumb://type=GameThumbnail&id="..game.PlaceId.."&w=256&h=144"
+T.Active = true
+T.Draggable = true
+T.MouseButton1Click:connect(function()
+    Rayfield:SetEnable(not Rayfield:GetEnable())
+end)
+
+local SelectTier = {"Common"}
+local SelectItem = {}
+local RarityNum = 1
+local KeepAmount = 1
+local BuyAmountPerItemNum = 1
+local ShopItem = {}
+local ShopList = {}
+
+local function NumberCoverter(str)
+    return tonumber((str:gsub("%D", "")))
+end
+
+for i, v in pairs(plr.PlayerGui.Shop.Window.Grid.ScrollingFrame:GetChildren()) do
+    if v:IsA("Frame") then
+        table.insert(ShopItem, {v.Frame.Button.ItemName.Text, v})
+    end
+end
+
+for i, v in pairs(ShopItem) do
+    table.insert(ShopList, v[1])
+end
+
+local Main = Window:CreateTab("Main", 125058207637011)
+Main:CreateSection("Main")
+
+AllSave.Essences = Main:CreateLabel("Essences: " ..plr.PlayerGui.Main.Essences.TextLabel.Text, 14376169362)
+Main:CreateLabel("Server: "..game.JobId, 9692125126)
+
+AllSave.AntiAFKBypassT = Main:CreateToggle({Name = "Anti AFK Bypass", CurrentValue = false, Flag = "AntiAFKBypassT", Callback = function(Value)
+    local vu = game:GetService("VirtualUser")
+    if Value then
+    	RunAntiAfk = plr.Idled:connect(function()
+    		vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    		wait(1)
+    		vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    	end)
+    else
+        if RunAntiAfk then
+            RunAntiAfk:Disconnect()
+            RunAntiAfk = nil
+        end
+    end
+end})
+
+Main:CreateInput({Name = "Server", CurrentValue = "", PlaceholderText = "ServerId", RemoveTextAfterFocusLost = true, Callback = function(Value)
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, Value, plr)
+end})
+
+Main:CreateButton({Name = "Rejoin", Callback = function()
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, plr)
+end})
+
+Main:CreateButton({Name = "Server Hop", Callback = function()
+    local servers = {}
+    local req = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true")
+    local body = HttpService:JSONDecode(req)
+
+    if body and body.data then
+        for i, v in next, body.data do
+            if type(v) == "table" and tonumber(v.playing) and tonumber(v.maxPlayers) and v.playing < v.maxPlayers and v.id ~= game.JobId then
+                table.insert(servers, 1, v.id)
+            end
+        end
+    end
+
+    if #servers > 0 then
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[math.random(1, #servers)], plr)
+    end
+end})
+
+local Farm = Window:CreateTab("Farm", 13060262529)
+Farm:CreateSection("Farm")
+
+AllSave.TotalRoll = Farm:CreateLabel("Total Roll: " ..plr.leaderstats.Rolls.Value, 12442713148)
+AllSave.RollCount = Farm:CreateLabel("Roll Count: " ..plr.Variables.RollCount.Value.."/10", 12442713148)
+
+AllSave.AutoRollT = Farm:CreateToggle({Name = "Auto Roll", CurrentValue = false, Flag = "AutoRollT", Callback = function(Value)
+    AutoRoll = Value
+end})
+
+Farm:CreateButton({Name = "Equip The Best Mount", Callback = function()
+    local TopRarity = 0
+    local Name = ""
+    for i, v in pairs(plr.PlayerGui.Inventory.Window.Grid.CanvasGroup.MountsFrame:GetChildren()) do
+        if v:IsA("Frame") and tonumber(v.Rarity.Value) > TopRarity then
+            TopRarity = tonumber(v.Rarity.Value)
+            Name = v.Name
+        end
+    end
+    if Name ~= "" then
+        local args = {
+        	Name
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SpawnMount"):InvokeServer(unpack(args))
+    end
+end})
+
+AllSave.TierListDrop = Farm:CreateDropdown({Name = "Tier List", Options = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Exotic"}, CurrentOption = {"Common"}, MultipleOptions = true, Flag = "TierListDrop", Callback = function(Value)
+    SelectTier = Value
+end})
+
+AllSave.MountSellRarity = Farm:CreateInput({Name = "Sell If Rarity Is Lower Than 1 in ", CurrentValue = "1", PlaceholderText = "Number", RemoveTextAfterFocusLost = true, Flag = "MountSellRarity", Callback = function(Value)
+    if tonumber(Value) then
+        RarityNum = tonumber(Value)
+        AllSave.MountSellRarity:Set(RarityNum)
+    else
+        AllSave.MountSellRarity:Set(RarityNum)
+        Rayfield:Notify({
+            Title = "⚠️ Warn!",
+            Content = "Please Put Number",
+            Duration = 3.5,
+            Image = 11745872910,
+        })
+    end
+end})
+
+AllSave.KeepAmount = Farm:CreateInput({Name = "Keep Amount", CurrentValue = "1", PlaceholderText = "Number", RemoveTextAfterFocusLost = true, Flag = "KeepAmount", Callback = function(Value)
+    if tonumber(Value) then
+        KeepAmount = tonumber(Value)
+        AllSave.KeepAmount:Set(KeepAmount)
+    else
+        AllSave.KeepAmount:Set(KeepAmount)
+        Rayfield:Notify({
+            Title = "⚠️ Warn!",
+            Content = "Please Put Number",
+            Duration = 3.5,
+            Image = 11745872910,
+        })
+    end
+end})
+
+AllSave.AutoSellMountT = Farm:CreateToggle({Name = "Auto Sell Mount", CurrentValue = false, Flag = "AutoSellMountT", Callback = function(Value)
+    AutoSellMount = Value
+end})
+
+local Shop = Window:CreateTab("Shop", 10893267086)
+Shop:CreateSection("Shop")
+
+Shop:CreateLabel("Shop", 11413045091)
+
+AllSave.ShopDrop = Shop:CreateDropdown({Name = "Item List", Options = ShopList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "ShopDrop", Callback = function(Value)
+    SelectItem = Value
+end})
+
+AllSave.BuyAllItemT = Shop:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "BuyAllItemT", Callback = function(Value)
+    BuyAllItem = Value
+end})
+
+AllSave.BuyAmountPerItem = Shop:CreateInput({Name = "Buy Amount Per Item", CurrentValue = "1", PlaceholderText = "Number", RemoveTextAfterFocusLost = true, Flag = "BuyAmountPerItem", Callback = function(Value)
+    if tonumber(Value) then
+        BuyAmountPerItemNum = tonumber(Value)
+        AllSave.BuyAmountPerItem:Set(BuyAmountPerItemNum)
+    else
+        AllSave.BuyAmountPerItem:Set(BuyAmountPerItemNum)
+        Rayfield:Notify({
+            Title = "⚠️ Warn!",
+            Content = "Please Put Number",
+            Duration = 3.5,
+            Image = 11745872910,
+        })
+    end
+end})
+
+Shop:CreateButton({Name = "Buy", Callback = function()
+    for i, v in pairs(ShopItem) do
+        if BuyAllItem then
+            if tonumber(v[2].Frame.Button.EssenceQuantity.Text) <= NumberCoverter(plr.PlayerGui.Main.Essences.TextLabel.Text) then
+                if NumberCoverter(plr.PlayerGui.Main.Essences.TextLabel.Text) > (tonumber(v[2].Frame.Button.EssenceQuantity.Text) * BuyAmountPerItemNum) then
+                    local args = {
+                    	v[1],
+                    	BuyAmountPerItemNum
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("MultiplePurchaseItem"):InvokeServer(unpack(args))
+                else
+                    local BestAmount = math.floor(NumberCoverter(plr.PlayerGui.Main.Essences.TextLabel.Text) / tonumber(v[2].Frame.Button.EssenceQuantity.Text))
+                    local args = {
+                    	v[1],
+                    	BestAmount
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("MultiplePurchaseItem"):InvokeServer(unpack(args))
+                end
+            end
+        else
+            if table.find(SelectItem, v[2].Frame.Button.ItemName.Text) and tonumber(v[2].Frame.Button.EssenceQuantity.Text) <= NumberCoverter(plr.PlayerGui.Main.Essences.TextLabel.Text) then
+                if NumberCoverter(plr.PlayerGui.Main.Essences.TextLabel.Text) > (tonumber(v[2].Frame.Button.EssenceQuantity.Text) * BuyAmountPerItemNum) then
+                    local args = {
+                    	v[1],
+                    	BuyAmountPerItemNum
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("MultiplePurchaseItem"):InvokeServer(unpack(args))
+                else
+                    local BestAmount = math.floor(NumberCoverter(plr.PlayerGui.Main.Essences.TextLabel.Text) / tonumber(v[2].Frame.Button.EssenceQuantity.Text))
+                    local args = {
+                    	v[1],
+                    	BestAmount
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("MultiplePurchaseItem"):InvokeServer(unpack(args))
+                end
+            end
+        end
+    end
+end})
+
+local IsDoneSellOne = true
+
+Run = RunService.RenderStepped:Connect(function()
+    if not Rayfield:GetGui() then
+        AllSave.Essences:Set("Essences: " ..plr.PlayerGui.Main.Essences.TextLabel.Text)
+        AllSave.TotalRoll:Set("Total Roll: " ..plr.leaderstats.Rolls.Value)
+        AllSave.RollCount:Set("Roll Count: " ..plr.Variables.RollCount.Value.."/10")
+        if AutoSellMount and IsDoneSellOne then
+            IsDoneSellOne = false
+            for i, v in pairs(plr.PlayerGui.Inventory.Window.Grid.CanvasGroup.MountsFrame:GetChildren()) do
+                if v:IsA("Frame") then
+                    if KeepAmount and tonumber(v.Button.Quantity.Text) > KeepAmount then
+                        if RarityNum and tonumber(v.Rarity.Value) < RarityNum then
+                            if SelectTier and table.find(SelectTier, UtilsModule.getRarityNameWithColor(v.Button.CardImage.ImageColor3)) then
+                                task.spawn(function()
+                                    local args = {
+                                        v.Name,
+                                    	tonumber(v.Button.Quantity.Text) - KeepAmount
+                                    }
+                                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("DisenchantFunction"):InvokeServer(unpack(args))
+                                end)
+                            end
+                        end
+                    end
+                end
+            end
+            task.wait(0.2)
+            IsDoneSellOne = true
+        end
+    else
+        if ST then
+            ST:Destroy()
+        end
+        if Run then
+            Run:Disconnect()
+            Run = nil
+        end
+    end
+end)
+
+task.spawn(function()
+	while not Rayfield:GetGui() do
+		task.wait(0.1)
+		if AutoRoll then
+        	task.spawn(function()
+        		game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("RollFunction"):InvokeServer(false)
+        	end)
+        end
+	end
+end)
+
+Rayfield:LoadConfiguration()
