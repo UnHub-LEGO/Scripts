@@ -3835,7 +3835,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 
 						if SliderSettings.CurrentValue ~= NewValue then
 							local Success, Response = pcall(function()
-								SliderSettings.Callback(NewValue)
+								SliderSettings.Callback(NewValue, false)
 							end)
 							if not Success then
 								TweenService:Create(Slider, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
@@ -3870,7 +3870,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 				Slider.Main.Information.Text = tostring(NewVal) .. " " .. (SliderSettings.Suffix or "")
 
 				local Success, Response = pcall(function()
-					SliderSettings.Callback(NewVal)
+					SliderSettings.Callback(NewVal, true)
 				end)
 
 				if not Success then
