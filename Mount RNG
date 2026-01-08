@@ -1,4 +1,5 @@
 local plr = game.Players.LocalPlayer
+if workspace.Environment.Interactables.Store:FindFirstChild("Part") then
 local prompt = workspace.Environment.Interactables.Store.Part.ProximityPrompt
 local PartCFrame = plr.Character.HumanoidRootPart.CFrame
 
@@ -14,6 +15,7 @@ task.wait()
 prompt:InputHoldEnd(plr)
 task.wait()
 plr.Character.HumanoidRootPart.CFrame = PartCFrame
+end
 
 local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/UnHub-LEGO/Scripts/refs/heads/main/Rayfield%20Library'))()
 
@@ -53,10 +55,19 @@ local TeleportService = game:GetService("TeleportService")
 local VIM = game:GetService("VirtualInputManager")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("RunService")
+local cam = workspace.CurrentCamera
+local freecamEnabled = false
+local keysDown = {}
+local rotating = false
+local touchPos = nil
+local speed = 5
 local UtilsModule = require(game.Players.LocalPlayer.PlayerGui.Scripts.UtilsModule)
 local Players = game.Players
 local AllSave = {}
-local AutoRoll, AutoSellMount, AutoCollectLoot, HideSkill, AutoFarm, AutoAttack, SelectAllMob = false, false, false, false, false, false, false
+local IsGettingQuest = false
+local AutoRoll, AutoSellMount, AutoCollectLoot, HideSkill, AutoFarm, AutoAttack, SelectAllMob, AutoGetQuestReward, AutoGetQuest = false, false, false, false, false, false, false, false, false
 local ST = Instance.new("ScreenGui")
 local T = Instance.new("ImageButton")
 local Corner = Instance.new("UICorner")
@@ -101,6 +112,147 @@ end
 
 for i, v in pairs(ShopItem) do
     table.insert(ShopList, v[1])
+end
+
+local function activateFreecam()
+   local plr = game.Players.LocalPlayer
+   local hum = plr.Character.HumanoidRootPart
+	local onMobile = not UIS.KeyboardEnabled
+	cam.CameraType = Enum.CameraType.Scriptable
+	local sens = 0.3
+	if onMobile then sens *= 2 end
+	keysDown = {}
+	rotating = false
+	local function renderStepped()
+		if not freecamEnabled then return end
+		if rotating then
+			local delta = UIS:GetMouseDelta()
+			local cf = cam.CFrame
+			local yAngle = cf:ToEulerAngles(Enum.RotationOrder.YZX)
+			local newAmount = math.deg(yAngle) + delta.Y
+			if newAmount > 65 or newAmount < -65 then
+				if not (yAngle < 0 and delta.Y < 0) and not (yAngle > 0 and delta.Y > 0) then
+					delta = Vector2.new(delta.X, 0)
+				end
+			end
+			cf *= CFrame.Angles(-math.rad(delta.Y), 0, 0)
+			cf = CFrame.Angles(0, -math.rad(delta.X), 0) * (cf - cf.Position) + cf.Position
+			cf = CFrame.lookAt(cf.Position, cf.Position + cf.LookVector)
+			if delta ~= Vector2.new(0, 0) then
+				cam.CFrame = cam.CFrame:Lerp(cf, sens)
+			end
+			UIS.MouseBehavior = Enum.MouseBehavior.LockCurrentPosition
+		else
+			UIS.MouseBehavior = Enum.MouseBehavior.Default
+		end
+		if keysDown["Enum.KeyCode.W"] then
+			cam.CFrame *= CFrame.new(Vector3.new(0, 0, -speed))
+		end
+		if keysDown["Enum.KeyCode.A"] then
+			cam.CFrame *= CFrame.new(Vector3.new(-speed, 0, 0))
+		end
+		if keysDown["Enum.KeyCode.S"] then
+			cam.CFrame *= CFrame.new(Vector3.new(0, 0, speed))
+		end
+		if keysDown["Enum.KeyCode.D"] then
+			cam.CFrame *= CFrame.new(Vector3.new(speed, 0, 0))
+		end
+	end
+	RS:BindToRenderStep("FreecamRender", Enum.RenderPriority.Camera.Value, renderStepped)
+	local validKeys = {"Enum.KeyCode.W", "Enum.KeyCode.A", "Enum.KeyCode.S", "Enum.KeyCode.D"}
+	UIS.InputBegan:Connect(function(Input)
+		for i, key in pairs(validKeys) do
+			if key == tostring(Input.KeyCode) then
+				keysDown[key] = true
+			end
+		end
+		if Input.UserInputType == Enum.UserInputType.MouseButton2 or (Input.UserInputType == Enum.UserInputType.Touch and UIS:GetMouseLocation().X > (cam.ViewportSize.X / 2)) then
+			rotating = true
+		end
+		if Input.UserInputType == Enum.UserInputType.Touch then
+			if Input.Position.X < cam.ViewportSize.X / 2 then
+				touchPos = Input.Position
+			end
+		end
+	end)
+	UIS.InputEnded:Connect(function(Input)
+		for key, _ in pairs(keysDown) do
+			if key == tostring(Input.KeyCode) then
+				keysDown[key] = false
+			end
+		end
+		if Input.UserInputType == Enum.UserInputType.MouseButton2 or (Input.UserInputType == Enum.UserInputType.Touch and UIS:GetMouseLocation().X > (cam.ViewportSize.X / 2)) then
+			rotating = false
+		end
+		if Input.UserInputType == Enum.UserInputType.Touch and touchPos then
+			if Input.Position.X < cam.ViewportSize.X / 2 then
+				touchPos = nil
+				keysDown["Enum.KeyCode.W"] = false
+				keysDown["Enum.KeyCode.A"] = false
+				keysDown["Enum.KeyCode.S"] = false
+				keysDown["Enum.KeyCode.D"] = false
+			end
+		end
+	end)
+	UIS.TouchMoved:Connect(function(input)
+		if touchPos then
+			if input.Position.X < cam.ViewportSize.X / 2 then
+				if input.Position.Y < touchPos.Y then
+					keysDown["Enum.KeyCode.W"] = true
+					keysDown["Enum.KeyCode.S"] = false
+				else
+					keysDown["Enum.KeyCode.W"] = false
+					keysDown["Enum.KeyCode.S"] = true
+				end
+				if input.Position.X < (touchPos.X - 15) then
+					keysDown["Enum.KeyCode.A"] = true
+					keysDown["Enum.KeyCode.D"] = false
+				elseif input.Position.X > (touchPos.X + 15) then
+					keysDown["Enum.KeyCode.A"] = false
+					keysDown["Enum.KeyCode.D"] = true
+				else
+					keysDown["Enum.KeyCode.A"] = false
+					keysDown["Enum.KeyCode.D"] = false
+				end
+			end
+		end
+	end)
+end
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local SoundService = game:GetService("SoundService")
+
+local QuestsGui = plr:WaitForChild("PlayerGui"):WaitForChild("Quests")
+local QuestInfo = QuestsGui:WaitForChild("QuestInfo")
+local PlayerButtons = plr:WaitForChild("PlayerGui"):WaitForChild("Main"):WaitForChild("PlayerButtons").Grid.Quests
+
+local completeEvent = ReplicatedStorage:WaitForChild("Quests"):WaitForChild("RequestQuestComplete")
+local scrollingFrame = QuestsGui.Window.Grid.ScrollingFrame
+
+local function completeQuest(questCard)
+	if questCard:FindFirstChild("CurrentQuantity") and questCard:FindFirstChild("TargetQuantity") then
+		if questCard.CurrentQuantity.Value >= questCard.TargetQuantity.Value then
+			local questName = questCard.Name
+			completeEvent:FireServer(questName)
+			local card = scrollingFrame:FindFirstChild(questName)
+			if card then
+				card:Destroy()
+			end
+			local showNoQuests = #scrollingFrame:GetChildren() <= 1
+			QuestsGui.Window.NoQuests.Visible = showNoQuests
+			PlayerButtons.Button.Notification.Visible = false
+			SoundService.Interface.OpenQuests:Play()
+		end
+	end
+end
+
+local function deactivateFreecam()
+   local plr = game.Players.LocalPlayer
+   local hum = plr.Character.HumanoidRootPart
+	freecamEnabled = false
+	cam.CameraType = Enum.CameraType.Custom
+	UIS.MouseBehavior = Enum.MouseBehavior.Default
+	RS:UnbindFromRenderStep("FreecamRender")
 end
 
 local Main = Window:CreateTab("Main", 125058207637011)
@@ -226,6 +378,23 @@ end})
 
 AllSave.DisableCameraShakeT = Farm:CreateToggle({Name = "Disable Camera Shake", CurrentValue = false, Flag = "DisableCameraShakeT", Callback = function(Value)
     plr.PlayerScripts.CameraShakeClient.Disabled = Value
+end})
+
+AllSave.FreeCamT = Farm:CreateToggle({Name = "Free Cam", CurrentValue = false, Flag = "FreeCamT", Callback = function(Value)
+    freecamEnabled = Value
+    if Value then
+        activateFreecam()
+    else
+        deactivateFreecam()
+    end
+end})
+
+AllSave.AutoGetQuestT = Farm:CreateToggle({Name = "Auto Get Quest", CurrentValue = false, Flag = "AutoGetQuestT", Callback = function(Value)
+    AutoGetQuest = Value
+end})
+
+AllSave.AutoGetQuestRewardT = Farm:CreateToggle({Name = "Auto Get Quest Reward", CurrentValue = false, Flag = "AutoGetQuestRewardT", Callback = function(Value)
+    AutoGetQuestReward = Value
 end})
 
 AllSave.MobListDrop = Farm:CreateDropdown({Name = "Mob List", Options = Mobs, CurrentOption = {"Common"}, MultipleOptions = true, Flag = "MobListDrop", Callback = function(Value)
@@ -381,6 +550,13 @@ Run = RunService.RenderStepped:Connect(function(dt)
                 end
             end
         end
+        if AutoGetQuestReward then
+            for _, quest in ipairs(scrollingFrame:GetChildren()) do
+            	if quest:IsA("Frame") then
+            		completeQuest(quest)
+            	end
+            end
+        end
         end)
     else
         if ST then
@@ -401,6 +577,7 @@ local direction
 local distance
 
 Run2 = RunService.Heartbeat:Connect(function(dt)
+    if IsGettingQuest and AutoGetQuest then return end
     if Rayfield:GetGui() then
         if Run2 then
             Run2:Disconnect()
@@ -452,6 +629,39 @@ task.spawn(function()
                 task.spawn(function()
                     game:GetService("ReplicatedStorage"):WaitForChild("Combat"):WaitForChild("RequestSkillUse"):FireServer(v.Name)
                 end)
+            end
+        end
+        if AutoGetQuest then
+            local Num = 0
+            for i, v in pairs(plr.PlayerGui.Quests.Window.Grid.ScrollingFrame:GetChildren()) do
+                if v:IsA("Frame") then
+                    Num = Num + 1
+                end
+            end
+            if Num < 8 then
+                IsGettingQuest = true
+            else
+                IsGettingQuest = false
+            end 
+            if IsGettingQuest then
+                for i, v in pairs(workspace.Environment.Interactables.Quests:GetChildren()) do
+                    if v:IsA("Part") and v:FindFirstChild("ProximityPrompt") then
+                        local prompt = v:FindFirstChild("ProximityPrompt")
+                        local PartCFrame = plr.Character.HumanoidRootPart.CFrame
+                        plr.Character:WaitForChild("HumanoidRootPart").CFrame = v.CFrame
+                        prompt.HoldDuration = 0
+                        task.wait(0.1)
+                        prompt:InputHoldBegin(plr)
+                        task.wait()
+                        prompt:InputHoldEnd(plr)
+                        task.wait(0.1)
+                        prompt:InputHoldBegin(plr)
+                        task.wait()
+                        prompt:InputHoldEnd(plr)
+                        task.wait()
+                        plr.Character.HumanoidRootPart.CFrame = PartCFrame
+                    end
+                end
             end
         end
 	end
