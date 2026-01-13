@@ -37,7 +37,7 @@ local plr = game.Players.LocalPlayer
 local Players = game.Players
 local AllSave = {}
 local DoneOneLoop = true
-local AutoBuyF, AutoBuyT, BuyAllT, BuyAllF, AutoExtractHoney, AutoSellHoney, AutoDepositChristmasHoney = false, false, false, false, false, false, false
+local AutoBuyF, AutoBuyT, BuyAllT, BuyAllF, AutoExtractHoney, AutoSellHoney, AutoDepositChristmasHoney, AutoSpawnBee = false, false, false, false, false, false, false, false
 local ST = Instance.new("ScreenGui")
 local T = Instance.new("ImageButton")
 local Corner = Instance.new("UICorner")
@@ -170,6 +170,11 @@ end})
 AllSave.AutoSellHoneyT = Farm:CreateToggle({Name = "Auto Sell Honey", CurrentValue = false, Flag = "AutoSellHoneyT", Callback = function(Value)
     AutoSellHoney = Value
 end})
+
+AllSave.AutoSpawnBeeT = Farm:CreateToggle({Name = "Auto Spawn Bee", CurrentValue = false, Flag = "AutoSpawnBeeT", Callback = function(Value)
+    AutoSpawnBee = Value
+end})
+
 
 local Shop = Window:CreateTab("Shop", 10893267086)
 Shop:CreateSection("Shop")
@@ -309,6 +314,29 @@ while not Rayfield:GetGui() do
             }
             game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("HoneySystem"):WaitForChild("HoneyUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
         end)
+    end
+    if AutoSpawnBee then
+        local Num = 0
+        for i, v in pairs(Plot.Flowers:GetChildren()) do
+            if not v:FindFirstChild("BeeSlot") and not v:FindFirstChild("InstantGrowAttachment") then
+                Num = Num + 1
+            end
+        end
+        
+        for i = 1, Num do
+            local args = {
+            	"SpawnFlowerBee",
+            	i + #Plot.Flowers:GetChildren()
+            }
+            
+            game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("HoneySystem"):WaitForChild("FlowerUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+            local args = {
+            	"SpawnFlowerBee",
+            	i + (#Plot.Flowers:GetChildren() - Num)
+            }
+            
+            game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("HoneySystem"):WaitForChild("FlowerUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+        end
     end
 end
 
