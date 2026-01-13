@@ -1,0 +1,315 @@
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/UnHub-LEGO/Scripts/refs/heads/main/Rayfield%20Library'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "UnHub | by LE_GO89",
+   FileName = "UnHub",
+   Icon = 0,
+   LoadingTitle = "UnHub",
+   LoadingSubtitle = "by LE_GO89",
+   Theme = "Default",
+   ToggleUIKeybind = "H",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "Build A Beehive",
+      FileName = "data"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "",
+      RememberJoins = true
+   },
+   KeySystem = false,
+   KeySettings = {
+      Title = "UnHub",
+      Subtitle = "Key",
+      Note = "Get the key by visit the website and wait 5 sec copy the key",
+      FileName = "Key",
+      SaveKey = false,
+      GrabKeyFromSite = false,
+      Key = {"Hi"}
+    }
+})
+
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local plr = game.Players.LocalPlayer
+local Players = game.Players
+local AllSave = {}
+local DoneOneLoop = true
+local AutoBuyF, AutoBuyT, BuyAllT, BuyAllF, AutoExtractHoney, AutoSellHoney, AutoDepositChristmasHoney = false, false, false, false, false, false, false
+local ST = Instance.new("ScreenGui")
+local T = Instance.new("ImageButton")
+local Corner = Instance.new("UICorner")
+local Backpack = plr.Backpack
+ST.Name = "Toggle UnHub"
+ST.Parent = Rayfield:GetParent().Parent
+ST.ResetOnSpawn = false
+Corner.Name = "Corner"
+Corner.Parent = T
+T.Name = "T"
+T.Parent = ST
+T.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+T.Position = UDim2.new(0, 30, 0.08, 0)
+T.Size = UDim2.new(0, 50, 0, 50)
+T.Image = "rbxthumb://type=GameThumbnail&id="..game.PlaceId.."&w=256&h=144"
+T.Active = true
+T.Draggable = true
+T.MouseButton1Click:connect(function()
+    Rayfield:SetEnable(not Rayfield:GetEnable())
+end)
+
+local multipliers = {
+	K = 1e3,
+	M = 1e6,
+	B = 1e9,
+	T = 1e12
+}
+
+local function getNumber(text)
+    return tonumber((string.gsub(text, "%D", "")))
+end
+
+local function GetPlayerMoney()
+    return tonumber((getNumber(plr.PlayerGui.HUD.Currency.AmountLabel.Text)))
+end
+
+
+local SelectFlowers = {}
+local SelectItems = {}
+local Items = {}
+local ItemsList = {}
+local Flowers = {}
+local FlowersList = {}
+local Plot
+
+for i, v in pairs(workspace.Plots:GetChildren()) do
+    if v.Owner.Value == game.Players.LocalPlayer then
+        Plot = v
+    end
+end
+
+for i, v in pairs(plr.PlayerGui.ScreenItemsShop.TreeToolShop.Frame.ScrollingFrame:GetChildren()) do
+    if v:IsA("Frame") and v:FindFirstChild("ItemButton") and v.Visible then
+        table.insert(Items, {v.ItemButton.NameLabel.Text, v.Name, getNumber(v.ItemButton.PriceLabel.Text), v})
+    end
+end
+
+for i, v in pairs(plr.PlayerGui.ScreenItemsShop.FlowerShopWindow:GetChildren()) do
+    if v:FindFirstChild("ScrollingFrame") then
+        for i, v in pairs(v.ScrollingFrame:GetChildren()) do
+            if v:IsA("Frame") and v:FindFirstChild("ItemButton") and v.Visible then
+                table.insert(Flowers, {v.ItemButton.NameLabel.Text, v.Name, getNumber(v.ItemButton.PriceLabel.Text), v})
+            end
+        end
+    end
+end
+
+for i, v in pairs(Items) do
+    table.insert(ItemsList, v[1])
+end
+
+for i, v in pairs(Flowers) do
+    table.insert(FlowersList, v[1])
+end
+
+local Main = Window:CreateTab("Main", 125058207637011)
+Main:CreateSection("Main")
+
+Main:CreateLabel("Server: "..game.JobId, 9692125126)
+
+AllSave.AntiAFKBypassT = Main:CreateToggle({Name = "Anti AFK Bypass", CurrentValue = false, Flag = "AntiAFKBypassT", Callback = function(Value)
+    local vu = game:GetService("VirtualUser")
+    if Value then
+    	RunAntiAfk = game:GetService("Players").LocalPlayer.Idled:connect(function()
+    		vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    		wait(1)
+    		vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    	end)
+    else
+        if RunAntiAfk then
+            RunAntiAfk:Disconnect()
+            RunAntiAfk = nil
+        end
+    end
+end})
+
+Main:CreateInput({Name = "Server", CurrentValue = "", PlaceholderText = "ServerId", RemoveTextAfterFocusLost = true, Callback = function(Value)
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, Value, plr)
+end})
+
+Main:CreateButton({Name = "Rejoin", Callback = function()
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, plr)
+end})
+
+Main:CreateButton({Name = "Server Hop", Callback = function()
+    local servers = {}
+    local req = game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true")
+    local body = HttpService:JSONDecode(req)
+
+    if body and body.data then
+        for i, v in next, body.data do
+            if type(v) == "table" and tonumber(v.playing) and tonumber(v.maxPlayers) and v.playing < v.maxPlayers and v.id ~= game.JobId then
+                table.insert(servers, 1, v.id)
+            end
+        end
+    end
+
+    if #servers > 0 then
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[math.random(1, #servers)], plr)
+    end
+end})
+
+local Farm = Window:CreateTab("Farm", 13060262529)
+Farm:CreateSection("Farm")
+
+AllSave.AutoExtractHoneyT = Farm:CreateToggle({Name = "Auto Extract Honey", CurrentValue = false, Flag = "AutoExtractHoneyT", Callback = function(Value)
+    AutoExtractHoney = Value
+end})
+
+AllSave.AutoSellHoneyT = Farm:CreateToggle({Name = "Auto Sell Honey", CurrentValue = false, Flag = "AutoSellHoneyT", Callback = function(Value)
+    AutoSellHoney = Value
+end})
+
+local Shop = Window:CreateTab("Shop", 10893267086)
+Shop:CreateSection("Shop")
+
+Shop:CreateLabel("Flower Shop", 13700460401)
+
+AllSave.FlowersDrop = Shop:CreateDropdown({Name = "Flowers", Options = FlowersList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "FlowersDrop", Callback = function(Value)
+    SelectFlowers = Value
+end})
+
+AllSave.BuyAllFT = Shop:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "BuyAllFT", Callback = function(Value)
+    BuyAllF = Value
+end})
+
+AllSave.AutoBuyFT = Shop:CreateToggle({Name = "Auto Buy", CurrentValue = false, Flag = "AutoBuyFT", Callback = function(Value)
+    AutoBuyF = Value
+end})
+
+Shop:CreateDivider()
+Shop:CreateLabel("Item Shop", 9681724261)
+
+AllSave.ItemsDrop = Shop:CreateDropdown({Name = "Items", Options = ItemsList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "ItemsDrop", Callback = function(Value)
+    SelectItems = Value
+end})
+
+AllSave.BuyAllTT = Shop:CreateToggle({Name = "Buy All", CurrentValue = false, Flag = "BuyAllTT", Callback = function(Value)
+    BuyAllT = Value
+end})
+
+AllSave.AutoBuyTT = Shop:CreateToggle({Name = "Auto Buy", CurrentValue = false, Flag = "AutoBuyTT", Callback = function(Value)
+    AutoBuyT = Value
+end})
+
+local Event = Window:CreateTab("Event", 117500105561516)
+Event:CreateSection("Event")
+
+AllSave.AutoDepositChristmasHoneyT = Event:CreateToggle({Name = "Auto Deposit Christmas Honey", CurrentValue = false, Flag = "AutoDepositChristmasHoneyT", Callback = function(Value)
+    AutoDepositChristmasHoney = Value
+end})
+
+Run = RunService.RenderStepped:Connect(function()
+    if not Rayfield:GetGui() then
+        if AutoBuyF then
+            for i, v in pairs(Flowers) do
+                if BuyAllF then
+                    task.spawn(function()
+                        if v[3] <= GetPlayerMoney() and not v[4].ButtonsFrame.NoStockButton.Visible then
+                            local args = {
+                            	"BuyFlower",
+                            	v[2]
+                            }
+                            game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("HoneySystem"):WaitForChild("FlowerUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+                        end
+                    end)
+                else
+                    task.spawn(function()
+                        if v[1] and table.find(SelectFlowers, v[1]) and v[3] <= GetPlayerMoney() and not v[4].ButtonsFrame.NoStockButton.Visible then
+                            local args = {
+                            	"BuyFlower",
+                            	v[2]
+                            }
+                            game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("HoneySystem"):WaitForChild("FlowerUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+                        end
+                    end)
+                end
+            end
+        end
+        if AutoBuyT then
+            for i, v in pairs(Items) do
+                if BuyAllT then
+                    task.spawn(function()
+                        if v[3] <= GetPlayerMoney() and not v[4].ButtonsFrame.NoStockButton.Visible then
+                            local args = {
+                            	"BuyTreeFertilizer",
+                            	v[2]
+                            }
+                            game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("FlowerTreeSystem"):WaitForChild("TreeToolUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+                        end
+                    end)
+                else
+                    task.spawn(function()
+                        if v[1] and table.find(SelectItems, v[1]) and v[3] <= GetPlayerMoney() and not v[4].ButtonsFrame.NoStockButton.Visible then
+                            local args = {
+                            	"BuyTreeFertilizer",
+                            	v[2]
+                            }
+                            game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("FlowerTreeSystem"):WaitForChild("TreeToolUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+                        end
+                    end)
+                end
+            end
+        end
+        if AutoDepositChristmasHoney then
+            for i, v in pairs(plr.Backpack:GetChildren()) do
+                if v.Name:find("Christmas Honey [") then
+                    local args = {
+                    	"DepositChristmasHoney"
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("GameEvent"):WaitForChild("GameEventUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+                end
+            end
+        end
+    else
+        if ST then
+            ST:Destroy()
+        end
+        if Run then
+            Run:Disconnect()
+            Run = nil
+        end
+    end
+end)
+
+while not Rayfield:GetGui() do
+    task.wait(1)
+    
+    if AutoExtractHoney then
+        if Plot:FindFirstChild("Hives") then
+            task.spawn(function()
+                local args = {
+                	"ExtractHoney",
+                	{}
+                }
+                
+                for i, v in pairs(Plot.Hives:GetChildren()) do
+                    table.insert(args[2], v)
+                end
+                
+                game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("HoneySystem"):WaitForChild("HiveUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+            end)
+        end
+    end
+    if AutoSellHoney then
+        task.spawn(function()
+            local args = {
+            	"SellHoney"
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("HoneySystem"):WaitForChild("HoneyUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+        end)
+    end
+end
+
+Rayfield:LoadConfiguration()
