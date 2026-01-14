@@ -267,16 +267,6 @@ Run = RunService.RenderStepped:Connect(function()
                 end
             end
         end
-        if AutoDepositChristmasHoney then
-            for i, v in pairs(plr.Backpack:GetChildren()) do
-                if v.Name:find("Christmas Honey [") then
-                    local args = {
-                    	"DepositChristmasHoney"
-                    }
-                    game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("GameEvent"):WaitForChild("GameEventUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
-                end
-            end
-        end
     else
         if ST then
             ST:Destroy()
@@ -295,6 +285,12 @@ while not Rayfield:GetGui() do
         if Plot:FindFirstChild("Hives") then
             task.spawn(function()
                 local args = {
+                	"GetTreeHoney",
+                	"Tree1"
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("FlowerTreeSystem"):WaitForChild("FlowerTreeUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+
+                local args = {
                 	"ExtractHoney",
                 	{}
                 }
@@ -307,35 +303,68 @@ while not Rayfield:GetGui() do
             end)
         end
     end
-    if AutoSellHoney then
-        task.spawn(function()
+    if AutoDepositChristmasHoney then
+        local Is = false
+        for i, v in pairs(plr.Backpack:GetChildren()) do
+            if v.Name:find("Christmas Honey %[") then
+                Is = true
+            end
+        end
+        for i, v in pairs(plr.Character:GetChildren()) do
+            if v.Name:find("Christmas Honey %[") then
+                Is = true
+            end
+        end
+        if Is then
             local args = {
-            	"SellHoney"
+                "DepositChristmasHoney"
             }
-            game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("HoneySystem"):WaitForChild("HoneyUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
-        end)
+            game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("GameEvent"):WaitForChild("GameEventUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+        end
+    end
+    if AutoSellHoney then
+        if AutoDepositChristmasHoney then
+            local Is = false
+            for i, v in pairs(plr.Backpack:GetChildren()) do
+                if v.Name:find("Christmas Honey %[") then
+                    Is = true
+                end
+            end
+            for i, v in pairs(plr.Character:GetChildren()) do
+                if v.Name:find("Christmas Honey %[") then
+                    Is = true
+                end
+            end
+            if not Is then
+                task.spawn(function()
+                    local args = {
+                    	"SellHoney",
+                    	"Honey"
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("HoneySystem"):WaitForChild("HoneyUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+                end)
+            end
+        else
+            task.spawn(function()
+                local args = {
+                	"SellHoney",
+                	"Honey"
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("HoneySystem"):WaitForChild("HoneyUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
+            end)
+        end
     end
     if AutoSpawnBee then
         local Num = 0
         for i, v in pairs(Plot.Flowers:GetChildren()) do
             if not v:FindFirstChild("BeeSlot") and not v:FindFirstChild("InstantGrowAttachment") then
-                Num = Num + 1
+                local args = {
+                	"SpawnFlowerBee",
+                	v:GetAttribute("UniqueId")
+                }
+                
+                game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("HoneySystem"):WaitForChild("FlowerUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
             end
-        end
-        
-        for i = 1, Num do
-            local args = {
-            	"SpawnFlowerBee",
-            	i + #Plot.Flowers:GetChildren()
-            }
-            
-            game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("HoneySystem"):WaitForChild("FlowerUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
-            local args = {
-            	"SpawnFlowerBee",
-            	i + (#Plot.Flowers:GetChildren() - Num)
-            }
-            
-            game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Features"):WaitForChild("HoneySystem"):WaitForChild("FlowerUtil"):WaitForChild("RemoteEvent"):FireServer(unpack(args))
         end
     end
 end
