@@ -512,6 +512,7 @@ task.spawn(function()
             game:GetService("ReplicatedStorage"):WaitForChild("SparkrocketsComms"):WaitForChild("RE"):WaitForChild("CollectWishlights"):FireServer()
         end
         if Timer >= 900 then
+            
             local Players = game:GetService("Players")
             local TeleportService = game:GetService("TeleportService")
             
@@ -528,6 +529,7 @@ task.spawn(function()
             ]])
             
             TeleportService:Teleport(game.PlaceId, Players.LocalPlayer)
+            break
         end
         EntitiesCount:Set("Entities: "..GetFrog())
     	RibbitCount:Set("Ribbit: "..plr.leaderstats.Ribbles:GetAttribute("RawValue"), 11537490966)
