@@ -36,7 +36,7 @@ local TeleportService = game:GetService("TeleportService")
 local plr = game.Players.LocalPlayer
 local Players = game.Players
 local AllSave = {}
-local AutoBuy1, AutoPickUp, AutoBuy2, AutoBuy3, RunAntiAfk, BuyAll1, BuyAll2, BuyAll3, AutoPlaceAllTadpole, AutoGiftSanta, AutoFrameEvent, Run, BuyAllE = false, false, false, false, nil, false, false, false, false, false, nil, false
+local AutoBuy1, AutoPickUp, AutoBuy2, AutoBuy3, RunAntiAfk, BuyAll1, BuyAll2, BuyAll3, AutoPlaceAllTadpole, AutoSetOffFirework, AutoCollectSparkrocketT, Run, BuyAllE, AutoRejoinAfter15minT = false, false, false, false, nil, false, false, false, false, false, nil, false, false
 local ST = Instance.new("ScreenGui")
 local T = Instance.new("ImageButton")
 local Corner = Instance.new("UICorner")
@@ -95,18 +95,21 @@ local ShopHollyhop = {}
 local Hollyhop2 = {}
 local HollyhopList2 = {}
 local ShopHollyhop2 = {}
+local Timer = 0
 
-for i, v in pairs(plr.PlayerGui["Hollyhop Shop_Shop"].MainContainer.Container.Frame.Body.Items:GetChildren()) do
+for i, v in pairs(plr.PlayerGui["Sparklepond Bazaar_Shop"].MainContainer.Container.Frame.Body.Items:GetChildren()) do
 	if v:IsA("Frame") and v.Name:find(" Tadpole") then
 		table.insert(Hollyhop, {v.Name, v.Name:gsub(" Tadpole", " Frog"), tonumber(NumberCoverter(v.Right.PriceSection.Button.Amount.Text)), v})
-	elseif v:IsA("Frame") and not v.Name:find(" Tadpole") and v.Name ~= "Northstar Caller" then
+	elseif v:IsA("Frame") and not v.Name:find(" Tadpole") then
 	    table.insert(Hollyhop, {v.Name, tonumber(NumberCoverter(v.Right.PriceSection.Button.Amount.Text)), v})
 	    table.insert(Hollyhop2, {v.Name, tonumber(NumberCoverter(v.Right.PriceSection.Button.Amount.Text)), v})
 	end
 end
 
 for i, v in pairs(Hollyhop) do
-	table.insert(HollyhopList, v[1])
+    if v[1]:find(" Tadpole") then
+	    table.insert(HollyhopList, v[1])
+	end
 end
 for i, v in pairs(Hollyhop2) do
 	table.insert(HollyhopList2, v[1])
@@ -158,6 +161,10 @@ local EntitiesCount = Main:CreateLabel("Entities: "..GetFrog(), 11537490966)
 local RibbitCount = Main:CreateLabel("Ribbit: "..plr.leaderstats.Ribbles:GetAttribute("RawValue"), 11537490966)
 Main:CreateLabel("Server: "..game.JobId, 9692125126)
 
+Main:CreateButton({Name = "FPS Booster", Callback = function()
+    EnabledFps()
+end})
+
 AllSave.AntiAFKBypassT = Main:CreateToggle({Name = "Anti AFK Bypass", CurrentValue = false, Flag = "AntiAFKBypassT", Callback = function(Value)
     local vu = game:GetService("VirtualUser")
     if Value then
@@ -171,6 +178,26 @@ AllSave.AntiAFKBypassT = Main:CreateToggle({Name = "Anti AFK Bypass", CurrentVal
             RunAntiAfk:Disconnect()
             RunAntiAfk = nil
         end
+    end
+end})
+
+AllSave.AutoRejoinAfter15minT = Main:CreateToggle({Name = "Auto Rejoin After 15min", CurrentValue = false, Flag = "AutoRejoinAfter15minT", Callback = function(Value)
+    AutoRejoinAfter15min = Value
+    if Value then
+        Rayfield:Notify({
+            Title = "✅ Successfully",
+            Content = "Timer Start Now",
+            Duration = 3.5,
+            Image = 11745872910,
+        })
+    else
+        Rayfield:Notify({
+            Title = "✅ Successfully",
+            Content = "Timer Reset",
+            Duration = 3.5,
+            Image = 11745872910,
+        })
+        Timer = 0
     end
 end})
 
@@ -292,147 +319,22 @@ end})
 local Event = Window:CreateTab("Event", 117500105561516)
 Event:CreateSection("Event")
 
-AllSave.AutoGiftSantaT = Event:CreateToggle({Name = "Auto Gift Santa", CurrentValue = false, Flag = "AutoGiftSantaT", Callback = function(Value)
-    AutoGiftSanta = Value
+AllSave.AutoSetOffFireworkT = Event:CreateToggle({Name = "Auto Set Off Firework", CurrentValue = false, Flag = "AutoSetOffFireworkT", Callback = function(Value)
+    AutoSetOffFirework = Value
 end})
 
-Event:CreateButton({Name = "Pick Up Frog For Santa", Callback = function()
-    local Frog = {}
-    for i, t in pairs(plr.PlayerGui.ToyOrderUI.StrokeFrame.MainFrame.Body:GetChildren()) do
-        if t:IsA("Frame") and not t.FrogFrame.Check.Visible then
-            if not plr.Backpack:FindFirstChild(t.FrogFrame.Title.Text) then
-                for i, v in pairs(plr.Plot.Value.Entities:GetChildren()) do
-            		if v:IsA("Part") and v.Name == t.FrogFrame.Title.Text then
-            		    table.insert(Frog, v)
-            		    break
-            		end
-                end
-        	end
-        end
-    end
-    for i, v in pairs(Frog) do
-        game:GetService("ReplicatedStorage"):WaitForChild("FrogPickupComms"):WaitForChild("RE"):WaitForChild("Pickup"):FireServer(v)
-    end
-end})
-
-local AllToys = {
-    "Toy Plane", "Toy Car", "Toy Train", "Toy Horse", "Toy Stacking Rings", "Toy Tower",
-    "Toy Match Shapes",
-}
-
-AllSave.AutoFarmEventT = Event:CreateToggle({Name = "Auto Farm", CurrentValue = false, Flag = "AutoFarmEventT", Callback = function(Value)
-    AutoFrameEvent = Value
-    if AutoFrameEvent then
-        while AutoFrameEvent do
-            task.wait()
-            local Frog = {}
-            local PartCount = 0
-                for i, t in pairs(plr.PlayerGui.ToyOrderUI.StrokeFrame.MainFrame.Body:GetChildren()) do
-                    if t:IsA("Frame") then
-                        PartCount = PartCount + 1
-                    end
-                    if t:IsA("Frame") and not t.FrogFrame.Check.Visible and plr.PlayerGui.ToyOrderUI.StrokeFrame.MainFrame.Header.Title.Text == "Gift frogs to santa to unlock toy parts!" then
-                        if not plr.Backpack:FindFirstChild(t.FrogFrame.Title.Text) then
-                            local T_Tadpole = ""
-                            if t.FrogFrame.Title.Text:find(" Frog") then
-                                T_Tadpole = t.FrogFrame.Title.Text:gsub(" Frog", " Tadpole")
-                            elseif t.FrogFrame.Title.Text:find(" Toad") then
-                                T_Tadpole = t.FrogFrame.Title.Text:gsub(" Toad", "")
-                                T_Tadpole = T_Tadpole.." Tadpole"
-                            else
-                                T_Tadpole = t.FrogFrame.Title.Text.." Tadpole"
-                            end
-                            local Found = false
-                            for i, v in pairs(plr.Plot.Value.Entities:GetChildren()) do
-                        		if v:IsA("Part") and v.Name == t.FrogFrame.Title.Text then
-                        		    table.insert(Frog, v)
-                        		    Found = true
-                        		    break
-                        		end
-                        		if v:IsA("Model") and v.Name == T_Tadpole then
-                        		    Found = true
-                        		    break
-                        		end
-                            end
-                            if not Found then
-                                if plr.Backpack:FindFirstChild(T_Tadpole) then
-                                    if GetFrog() < 60 then
-                                        task.spawn(function()
-                                            local args = {
-                                                plr.Plot.Value:WaitForChild("SwimableAreas"):WaitForChild("Pond1"):WaitForChild("PlaceArea"),
-                                                Vector3.new(0, 0, 0)
-                                            }
-                                            plr.Backpack:FindFirstChild(T_Tadpole):WaitForChild("TadpoleToolComms"):WaitForChild("RE"):WaitForChild("RequestPlace"):FireServer(unpack(args))
-                                        end)
-                                    else
-                                        local LowestValue, Name, Weight  = -1, "", -1
-                                        for i, v in pairs(plr.PlayerGui.JournalUI.Container.MainFrame.BodySection.ListContainer.FrogList.ListFrame.List:GetChildren()) do
-                                            if v:IsA("Frame") then
-                                                if LowestValue == -1 then
-                                                    LowestValue = NumberCoverter(v.ButtonContainer.Button.Value.Text)
-                                                    Name = v.ButtonContainer.Button.FrogName.Text
-                                                    Weight = tonumber((v.ButtonContainer.Button.Weight.Text:gsub(" KG", "")))
-                                                elseif LowestValue > NumberCoverter(v.ButtonContainer.Button.Value.Text) then
-                                                    LowestValue = NumberCoverter(v.ButtonContainer.Button.Value.Text)
-                                                    Name = v.ButtonContainer.Button.FrogName.Text
-                                                     Weight = tonumber((v.ButtonContainer.Button.Weight.Text:gsub(" KG", "")))
-                                                 end
-                                             end
-                                        end
-                                        for i, v in pairs(plr.Plot.Value.Entities:GetChildren()) do
-                                            if v:IsA("Part") and v.Name == Name and v:GetAttribute("Weight") and math.floor(tonumber(v:GetAttribute("Weight")) + 0.5) == math.floor(Weight + 0.5) then
-                                                task.spawn(function()
-                                                     game:GetService("ReplicatedStorage"):WaitForChild("FrogPickupComms"):WaitForChild("RE"):WaitForChild("Pickup"):FireServer(v)
-                                                end)
-                                                break
-                                            end
-                                        end
-                                        task.spawn(function()
-                                            local args = {
-                                                plr.Plot.Value:WaitForChild("SwimableAreas"):WaitForChild("Pond1"):WaitForChild("PlaceArea"),
-                                                Vector3.new(0, 0, 0)
-                                            }
-                                            plr.Backpack:FindFirstChild(T_Tadpole):WaitForChild("TadpoleToolComms"):WaitForChild("RE"):WaitForChild("RequestPlace"):FireServer(unpack(args))
-                                        end)
-                                    end
-                                end
-                            end
-                    	end
-                    end
-                end
-                for i, v in pairs(Frog) do
-                    task.spawn(function()
-                        game:GetService("ReplicatedStorage"):WaitForChild("FrogPickupComms"):WaitForChild("RE"):WaitForChild("Pickup"):FireServer(v)
-                    end)
-                end
-                local Num = 0
-                for i, v in pairs(plr.PlayerGui.ToyOrderUI.StrokeFrame.MainFrame.Body:GetChildren()) do
-                    if v:IsA("Frame") and plr.PlayerGui.ToyOrderUI.StrokeFrame.MainFrame.Header.Title.Text == "Gift frogs to santa to unlock toy parts!" then
-                        if v.FrogFrame.Check.Visible then
-                            Num = Num + 1
-                        end
-                    end
-                end
-                if Num == PartCount then
-                    for i, v in pairs(AllToys) do
-                        task.spawn(function()
-                            game:GetService("ReplicatedStorage"):WaitForChild("ToyAssemblyManagerComms"):WaitForChild("RE"):WaitForChild("AssemblyComplete"):FireServer(v)
-                        end)
-                    end
-                end
-            game:GetService("ReplicatedStorage"):WaitForChild("DialogComms"):WaitForChild("RF"):WaitForChild("ExecuteAction"):InvokeServer("SantaFwogTree", "GiftAllFrogs")
-        end
-    end
+AllSave.AutoCollectSparkrocketT = Event:CreateToggle({Name = "Auto Collect Sparkrocket", CurrentValue = false, Flag = "AutoCollectSparkrocketT", Callback = function(Value)
+    AutoCollectSparkrocket = Value
 end})
 
 Event:CreateDivider()
 Event:CreateLabel("Event Shop", 117500105561516)
 
-AllSave.HollyhopDrop1 = Event:CreateDropdown({Name = "Hollyhop: Tadpole", Options = HollyhopList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "HollyhopDrop1", Callback = function(Value)
+AllSave.HollyhopDrop1 = Event:CreateDropdown({Name = "Sparklepond: Tadpole", Options = HollyhopList, CurrentOption = {"None"}, MultipleOptions = true, Flag = "HollyhopDrop1", Callback = function(Value)
     ShopHollyhop = Value
 end})
 
-AllSave.HollyhopDrop2 = Event:CreateDropdown({Name = "Hollyhop: Decoration", Options = HollyhopList2, CurrentOption = {"None"}, MultipleOptions = true, Flag = "HollyhopDrop2", Callback = function(Value)
+AllSave.HollyhopDrop2 = Event:CreateDropdown({Name = "Sparklepond: Decoration", Options = HollyhopList2, CurrentOption = {"None"}, MultipleOptions = true, Flag = "HollyhopDrop2", Callback = function(Value)
     ShopHollyhop2 = Value
 end})
 
@@ -455,13 +357,13 @@ Run = RunService.RenderStepped:Connect(function()
         		    if not BuyAllE then
             			if ShopHollyhop and table.find(ShopHollyhop, v[1]) and tonumber(plr.PlayerGui.CandyCaneUI.CashContainer.Container.Value.Text) >= v[3] and not v[4].Left.NoStockText.Visible then
             				task.spawn(function()
-            				    game:GetService("ReplicatedStorage"):WaitForChild("HollyhopShopComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(v[1], v[2])
+            				    game:GetService("ReplicatedStorage"):WaitForChild("SparklepondComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(v[1], v[2])
             			    end)
             			end
             		else
             		    if tonumber(plr.PlayerGui.CandyCaneUI.CashContainer.Container.Value.Text) >= v[3] and not v[4].Left.NoStockText.Visible then
             				task.spawn(function()
-            				    game:GetService("ReplicatedStorage"):WaitForChild("HollyhopShopComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(v[1], v[2])
+            				    game:GetService("ReplicatedStorage"):WaitForChild("SparklepondComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(v[1], v[2])
             			    end)
             			end
             		end
@@ -472,7 +374,7 @@ Run = RunService.RenderStepped:Connect(function()
             				    local args = {
                                 	v[1]
                                 }
-                                game:GetService("ReplicatedStorage"):WaitForChild("HollyhopShopComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(unpack(args))
+                                game:GetService("ReplicatedStorage"):WaitForChild("SparklepondComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(unpack(args))
             			    end)
             			end
             		else
@@ -481,7 +383,7 @@ Run = RunService.RenderStepped:Connect(function()
             				    local args = {
                                 	v[1]
                                 }
-                                game:GetService("ReplicatedStorage"):WaitForChild("HollyhopShopComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(unpack(args))
+                                game:GetService("ReplicatedStorage"):WaitForChild("SparklepondComms"):WaitForChild("RF"):WaitForChild("OnPurchaseItem"):InvokeServer(unpack(args))
             			    end)
             			end
             		end
@@ -542,7 +444,7 @@ Run = RunService.RenderStepped:Connect(function()
     	end
     	if AutoPickUp then
     		for i, v in pairs(plr.Plot.Value.Entities:GetChildren()) do
-    			if v:IsA("Part") then
+    			if v:IsA("Part") and not v:FindFirstChild("UnfavoriteComms") then
     			    task.spawn(function()
     				    game:GetService("ReplicatedStorage"):WaitForChild("FrogPickupComms"):WaitForChild("RE"):WaitForChild("Pickup"):FireServer(v)
     				end)
@@ -554,6 +456,20 @@ Run = RunService.RenderStepped:Connect(function()
     	    task.spawn(function()
     		    game:GetService("ReplicatedStorage"):WaitForChild("HopNSellComms"):WaitForChild("RE"):WaitForChild("SellAll"):FireServer()
     		end)
+    	end
+    	if AutoCollectSparkrocket then
+    	    for i, v in pairs(workspace:GetChildren()) do
+                if v:IsA("Model") and v.Name == "Sparkrocket" and v:FindFirstChild("Collider") then
+                    if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                        plr.Character.HumanoidRootPart.CFrame = v.Collider.CFrame
+                        task.wait(0.5)
+                        firetouchinterest(v.Collider, plr.Character.HumanoidRootPart, 0)
+                        task.wait()
+                        firetouchinterest(v.Collider, plr.Character.HumanoidRootPart, 1)
+                        game:GetService("ReplicatedStorage"):WaitForChild("SparkrocketsComms"):WaitForChild("RE"):WaitForChild("CollectSparkrockets"):FireServer(v.Collider)
+                    end
+                end
+            end
     	end
     	if AutoPlaceAllTadpole then
     	    if #plr.Backpack:GetChildren() == 0 then return end
@@ -575,12 +491,7 @@ Run = RunService.RenderStepped:Connect(function()
                 end
             end
     	end
-    	if AutoGiftSanta then
-    	    if PartCount == DPartCount then return end
-    	    game:GetService("ReplicatedStorage"):WaitForChild("DialogComms"):WaitForChild("RF"):WaitForChild("ExecuteAction"):InvokeServer("SantaFwogTree", "GiftAllFrogs")
-    	end
     else
-        AutoFrameEvent = nil
         if ST then
             ST:Destroy()
         end
@@ -594,15 +505,29 @@ end)
 task.spawn(function()
     while not Rayfield:GetGui() do
         task.wait(2)
-        for i, t in pairs(plr.PlayerGui.ToyOrderUI.StrokeFrame.MainFrame.Body:GetChildren()) do
-            PartCount = 0
-            DPartCount = 0
-            if t:IsA("Frame") then
-                PartCount = PartCount + 1
-            end
-            if t:IsA("Frane") and t.FrogFrame.Check.Visible then
-                DPartCount = DPartCount + 1
-            end
+        if AutoRejoinAfter15min then
+            Timer = Timer + 2
+        end
+        if AutoSetOffFirework then
+            game:GetService("ReplicatedStorage"):WaitForChild("SparkrocketsComms"):WaitForChild("RE"):WaitForChild("CollectWishlights"):FireServer()
+        end
+        if Timer >= 900 then
+            local Players = game:GetService("Players")
+            local TeleportService = game:GetService("TeleportService")
+            
+            local queue =
+                (getgenv and getgenv().queue_on_teleport)
+                or queue_on_teleport
+                or (syn and syn.queue_on_teleport)
+                or (fluxus and fluxus.queue_on_teleport)
+            
+            queue([[
+                repeat task.wait() until game:IsLoaded()
+                task.wait(3)
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/UnHub-LEGO/Scripts/refs/heads/main/My%20frog%20Pond"))()
+            ]])
+            
+            TeleportService:Teleport(game.PlaceId, Players.LocalPlayer)
         end
         EntitiesCount:Set("Entities: "..GetFrog())
     	RibbitCount:Set("Ribbit: "..plr.leaderstats.Ribbles:GetAttribute("RawValue"), 11537490966)
