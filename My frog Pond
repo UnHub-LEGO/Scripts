@@ -79,6 +79,45 @@ local function NumberCoverter(text)
 	return value
 end
 
+local function EnabledFps()
+	table.clear(Stuff)
+	for _, v in next, game:GetDescendants() do
+		if ToDisable.Parts and (v:IsA("Part") or v:IsA("UnionOperation") or v:IsA("BasePart")) then
+			v.Material = Enum.Material.SmoothPlastic
+			table.insert(Stuff, v)
+		end
+		if ToDisable.Particles and (v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Explosion") or v:IsA("Sparkles") or v:IsA("Fire")) then
+			v.Enabled = false
+			table.insert(Stuff, v)
+		end
+		if ToDisable.VisualEffects and (v:IsA("BloomEffect") or v:IsA("BlurEffect") or v:IsA("DepthOfFieldEffect") or v:IsA("SunRaysEffect")) then
+			v.Enabled = false
+			table.insert(Stuff, v)
+		end
+		if ToDisable.Textures and (v:IsA("Decal") or v:IsA("Texture")) then
+			v.Texture = ""
+			table.insert(Stuff, v)
+		end
+		if ToDisable.Sky and v:IsA("Sky") then
+			v.Parent = nil
+			table.insert(Stuff, v)
+		end
+	end
+
+	if ToEnable.FullBright then
+		Lighting.FogColor = Color3.new(1, 1, 1)
+		Lighting.FogEnd = math.huge
+		Lighting.FogStart = math.huge
+		Lighting.Ambient = Color3.new(1, 1, 1)
+		Lighting.Brightness = 5
+		Lighting.ColorShift_Bottom = Color3.new(1, 1, 1)
+		Lighting.ColorShift_Top = Color3.new(1, 1, 1)
+		Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+		Lighting.Outlines = true
+	end
+	TestService:Message("Effects Disabler: Disabled "..#Stuff.." items")
+end
+
 local function GetFrog()
 	for i, v in pairs(plr.PlayerGui:GetChildren()) do
 	    if v.Name == "PondLimitUI" then
