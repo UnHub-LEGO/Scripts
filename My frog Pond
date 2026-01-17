@@ -503,10 +503,6 @@ Run = RunService.RenderStepped:Connect(function()
                     if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
                         plr.Character.HumanoidRootPart.CFrame = v.Collider.CFrame
                         task.wait(0.5)
-                        firetouchinterest(v.Collider, plr.Character.HumanoidRootPart, 0)
-                        task.wait()
-                        firetouchinterest(v.Collider, plr.Character.HumanoidRootPart, 1)
-                        game:GetService("ReplicatedStorage"):WaitForChild("SparkrocketsComms"):WaitForChild("RE"):WaitForChild("CollectSparkrockets"):FireServer(v.Collider)
                     end
                 end
             end
