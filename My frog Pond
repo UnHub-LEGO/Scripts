@@ -39,6 +39,7 @@ local AllSave = {}
 local AutoBuy1, AutoPickUp, AutoBuy2, AutoBuy3, RunAntiAfk, BuyAll1, BuyAll2, BuyAll3, AutoPlaceAllTadpole, AutoSetOffFirework, AutoCollectSparkrocketT, Run, BuyAllE, AutoRejoinAfter15minT = false, false, false, false, nil, false, false, false, false, false, nil, false, false
 local ST = Instance.new("ScreenGui")
 local T = Instance.new("ImageButton")
+local Stuff = {}
 local Corner = Instance.new("UICorner")
 ST.Name = "Toggle UnHub"
 ST.Parent = Rayfield:GetParent().Parent
